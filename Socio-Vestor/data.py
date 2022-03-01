@@ -81,3 +81,21 @@ def get_social_sentiment_data(from_date="2022-02-23",to_date = "2022-02-27"):
     response_df = response_df.set_index('date')
 
     return response_df
+
+def get_intraday_data():
+    ''' fetches the intraday data for SPY for a given interval for the trailing past two years'''
+
+    function = "TIME_SERIES_INTRADAY_EXTENDED"
+    symbol = "SPY"
+    interval = "1min"
+    slice_ = "year1month1"
+
+    url = f"https://www.alphavantage.co/query?\
+            function={function}&symbol={symbol}\
+            &interval={interval}&slice={slice_}&apikey={apikey}"
+
+    SPY_ext_hist = pd.read_csv(url)
+    data_SPY_ext_hist = pd.DataFrame(SPY_ext_hist)
+    data_SPY_ext_hist = data_SPY_ext_hist.set_index('time')
+
+    return data_SPY_ext_hist
