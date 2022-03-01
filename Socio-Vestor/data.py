@@ -39,7 +39,7 @@ def get_inflation_data(function="INFLATION_EXPECTATION"):
 
     params = {"function" : f"{function}",
               "apikey" : f"{apikey}"
-            }
+              }
 
     response_inflation = requests.get(url, params=params).json()
     data_inflation = pd.DataFrame.from_dict(response_inflation['data'])
