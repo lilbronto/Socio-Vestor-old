@@ -10,6 +10,8 @@ pandas
 scikit-learn
 tensorflow
 keras
+statsmodels
+scipy
 
 # tests/linter
 black
