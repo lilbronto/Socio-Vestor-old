@@ -32,6 +32,7 @@ def get_cpi_data():
 
     response_CPI = requests.get(url, params=params).json()
     data_CPI = pd.DataFrame.from_dict(response_CPI['data'])
+    data_CPI = data_CPI.set_index('date')
 
     return data_CPI
 
@@ -43,6 +44,7 @@ def get_inflation_data(function="INFLATION_EXPECTATION"):
 
     response_inflation = requests.get(url, params=params).json()
     data_inflation = pd.DataFrame.from_dict(response_inflation['data'])
+    data_inflation = data_inflation.set_index('date')
 
     return data_inflation
 
@@ -56,5 +58,26 @@ def get_consumer_sentiment_data():
 
     response_consumer_sentiment = requests.get(url, params=params).json()
     data_consumer_sentiment = pd.DataFrame.from_dict(response_consumer_sentiment['data'])
+    data_consumer_sentiment = data_consumer_sentiment.set_index('date')
 
     return data_consumer_sentiment
+
+def get_social_sentiment_data(from_date="2022-02-23",to_date = "2022-02-27"):
+
+    symbol = "SPY"
+
+    headers_dict = {"Authorization" : "Token 2b104f7101af551565791f4a47ab3ba7ef89598a",
+                    "Accept" : "application/json"}
+
+    url_social_sent = f"https://socialsentiment.io/api/v1/stocks/{symbol}/sentiment/daily/"
+
+    params = {"to_date" : f"{to_date}",
+            "from_date" : f"{from_date}"
+            }
+
+    response = requests.get(url_social_sent, params=params, headers=headers_dict).json()
+
+    response_df = pd.DataFrame.from_dict(response)
+    response_df = response_df.set_index('date')
+
+    return response_df
