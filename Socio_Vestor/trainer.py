@@ -86,7 +86,7 @@ if __name__ == "__main__":
     trainer.save_model(simple_rnn_model)
     # evaluate
 
-    evaluated_model = trainer.evaluate(simple_rnn_model ,X_test,y_test)
+    evaluated_model = trainer.evaluate(simple_rnn_model, X_test, y_test)
 
     trainer.mlflow_log_metric("rmse", evaluated_model)
     trainer.mlflow_log_param("model", "SimpleRNN")
