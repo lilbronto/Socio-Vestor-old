@@ -58,7 +58,7 @@ pypi:
 PROJECT_ID=lewagon-bootcamp-337811
 
 # bucket name - replace with your GCP bucket name
-BUCKET_NAME=wagon-data-783-bewerunge
+BUCKET_NAME=socio-vestor-783-bewerunge
 
 # choose your region from https://cloud.google.com/storage/docs/locations#available_locations
 REGION=europe-west1
