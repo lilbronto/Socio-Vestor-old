@@ -4,10 +4,14 @@ import mlflow
 from  mlflow.tracking import MlflowClient
 import joblib
 from google.cloud import storage
+import pandas as pd
+import numpy as np
 
 from Socio_Vestor.params import BUCKET_NAME, STORAGE_LOCATION
+from Socio_Vestor.data import get_spy_data
+from Socio_Vestor.preprocessing import clean_data, df_optimized
 
-
+from Socio_Vestor.models import SimpleRnn
 
 class Trainer():
 
@@ -24,14 +28,9 @@ class Trainer():
     def set_pipeline(self):
         pass
 
-    def run(self):
-        """set and train the pipeline"""
-        self.pipeline = self.set_pipeline().fit(self.X,self.y)
-        return self.pipeline
-
-    def evaluate(self, X_test, y_test):
+    def evaluate(self,model, X_test, y_test):
         """evaluates the pipeline on df_test and return the RMSE"""
-        y_pred = self.pipeline.predict(X_test)
+        y_pred = model.predict(X_test)
         rmse = compute_rmse(y_pred, y_test)
         print(f"The root mean squared error is: {rmse}")
         return rmse
@@ -61,9 +60,9 @@ class Trainer():
         self.mlflow_client.log_metric(self.mlflow_run.info.run_id, key, value)
 
     # Saving the Model
-    def save_model(self):
+    def save_model(self, model):
         """ Save the trained model into a model.joblib file """
-        joblib.dump(self.pipeline, 'sociovestor.joblib')
+        joblib.dump(model, 'sociovestor.joblib')
 
         # Implement here
         client = storage.Client()
@@ -74,3 +73,26 @@ class Trainer():
 
         blob.upload_from_filename('sociovestor.joblib')
         print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
+
+
+if __name__ == "__main__":
+
+    model = SimpleRnn()
+    X_train, X_test, y_train, y_test = model.get_data()
+    model = model.build_simple_rnn()
+    simple_rnn_model = model.train_rnn(model, X_train, y_train)
+
+    trainer = Trainer()
+    trainer.save_model(simple_rnn_model)
+    # evaluate
+
+    evaluated_model = trainer.evaluate(simple_rnn_model ,X_test,y_test)
+
+    trainer.mlflow_log_metric("rmse", evaluated_model)
+    trainer.mlflow_log_param("model", "SimpleRNN")
+    trainer.mlflow_log_param("student_name", trainer.experiment_name)
+
+
+
+    experiment_id = trainer.mlflow_experiment_id
+    print(f"experiment URL: https://mlflow.lewagon.co/#/experiments/{experiment_id}")
