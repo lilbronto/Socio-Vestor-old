@@ -107,9 +107,7 @@ def get_intraday_data():
     interval = "1min"
     slice_ = "year1month1"
 
-    url = f"https://www.alphavantage.co/query?\
-            function={function}&symbol={symbol}\
-            &interval={interval}&slice={slice_}&apikey={apikey_av}"
+    url = f"https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval={interval}&slice={slice_}&apikey={apikey_av}"
 
     SPY_ext_hist = pd.read_csv(url)
     data_SPY_ext_hist = pd.DataFrame(SPY_ext_hist)
