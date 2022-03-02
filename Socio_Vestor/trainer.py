@@ -63,7 +63,7 @@ class Trainer():
     # Saving the Model
     def save_model(self):
         """ Save the trained model into a model.joblib file """
-        joblib.dump(self.pipeline, 'model.joblib')
+        joblib.dump(self.pipeline, 'sociovestor.joblib')
 
         # Implement here
         client = storage.Client()
@@ -72,5 +72,5 @@ class Trainer():
 
         blob = bucket.blob(STORAGE_LOCATION)
 
-        blob.upload_from_filename('model.joblib')
+        blob.upload_from_filename('sociovestor.joblib')
         print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
