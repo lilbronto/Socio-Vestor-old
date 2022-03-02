@@ -72,19 +72,23 @@ class Trainer():
 
 if __name__ == "__main__":
 
+    # import your model, get the train and test data and train it
     model = SimpleRnn()
     X_train, X_test, y_train, y_test = model.get_data()
     model.train_rnn(X_train, y_train)
 
+    # initialize a trainer and use it to save the model in the cloud
     trainer = Trainer()
     trainer.save_model(model.model)
-    # evaluate
 
+    # evaluate the model and print its score
     evaluated_model = trainer.evaluate(model, X_test, y_test)
 
+    # use mlflow to keep track of the hyperparameters
     trainer.mlflow_log_metric("rmse", evaluated_model)
     trainer.mlflow_log_param("model", "SimpleRNN")
     trainer.mlflow_log_param("student_name", trainer.experiment_name)
 
+    # print the website where the hyperparameters can be found
     experiment_id = trainer.mlflow_experiment_id
     print(f"experiment URL: https://mlflow.lewagon.co/#/experiments/{experiment_id}")
