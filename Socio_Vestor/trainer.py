@@ -13,23 +13,22 @@ from Socio_Vestor.models import SimpleRnn
 
 class Trainer():
 
-    def __init__(self, X, y):
+    def __init__(self):
         """
             X: pandas DataFrame
             y: pandas Series
         """
-        self.pipeline = None
-        self.X = X
-        self.y = y
+
         self.experiment_name = "[GER] [MUC] [socio-vestor] socio_vestor_783"
 
     def set_pipeline(self):
         pass
 
-    def evaluate(self,model, X_test, y_test):
+    def evaluate(self, model, X_test, y_test):
         """evaluates the pipeline on df_test and return the RMSE"""
-        y_pred = model.predict(X_test)
-        rmse = compute_rmse(y_pred, y_test)
+        y_pred = model.model.predict(X_test)
+        y_pred_reshaped = y_pred.reshape((y_pred.shape[0],))
+        rmse = compute_rmse(y_pred_reshaped, y_test)
         print(f"The root mean squared error is: {rmse}")
         return rmse
 
@@ -77,14 +76,13 @@ if __name__ == "__main__":
 
     model = SimpleRnn()
     X_train, X_test, y_train, y_test = model.get_data()
-    model = model.build_simple_rnn()
-    simple_rnn_model = model.train_rnn(model, X_train, y_train)
+    model.train_rnn(X_train, y_train)
 
     trainer = Trainer()
-    trainer.save_model(simple_rnn_model)
+    trainer.save_model(model.model)
     # evaluate
 
-    evaluated_model = trainer.evaluate(simple_rnn_model, X_test, y_test)
+    evaluated_model = trainer.evaluate(model, X_test, y_test)
 
     trainer.mlflow_log_metric("rmse", evaluated_model)
     trainer.mlflow_log_param("model", "SimpleRNN")

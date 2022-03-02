@@ -54,12 +54,12 @@ class SimpleRnn():
                     metrics=[metric])
         return model
 
-    def train_rnn(self, model, X_train, y_train):
+    def train_rnn(self, X_train, y_train):
         es = EarlyStopping(monitor='val_loss', verbose=1, patience=20, restore_best_weights=True)
-        model = self.build_simple_rnn()
-        history = model.fit(X_train, y_train,
+        self.model = self.build_simple_rnn()
+        self.model.fit(X_train, y_train,
                         validation_split=0.2,
                         batch_size=8,
-                        epochs=300,
+                        epochs=1,
                         callbacks=[es], verbose=1)
-        return history
+        return self.model
