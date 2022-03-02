@@ -6,8 +6,8 @@ from keras.layers import Dense, SimpleRNN
 import numpy as np
 import pandas as pd
 
-from Socio_Vestor.data import get_intraday_data
-from Socio_Vestor.preprocessing import clean_data
+from Socio_Vestor.data import get_intraday_data, get_main_df
+from Socio_Vestor.preprocessing import clean_data, scale
 
 class SimpleRnn():
 
@@ -70,7 +70,12 @@ class LSTM():
     def __init__(self):
         pass
 
-    def get_data(self, X_scaled, y):
+    def get_data(self):
+        df_main = get_main_df()
+        X = df_main.drop(['price_open', 'price_high', 'price_low', 'price_close'], axis=1)
+        y = df_main[['price_open', 'price_high', 'price_low', 'price_close']]
+
+        X_scaled = scale(X)
 
         train_size = 0.6
         index = round(train_size*X_scaled.shape[0])
@@ -94,13 +99,15 @@ class LSTM():
 
     def build_LSTM(self):
 
+        # Padding Layer (func)
         model = Sequential()
-        model.add(layers.LSTM(units=2, activation='tanh', input_shape=(1,5)))
+        # Masking Layer (func)
+        model.add(layers.LSTM(units=20, activation='tanh', input_shape=(1,5)))
         model.add(layers.Dense(1, activation="linear"))
 
         model.compile(loss='mse',
                       optimizer='adam',
-                      metrics="accuracy")
+                      metrics='accuracy')
         return model
 
     def train_LSTM(self, X_train_array, y_train_array, epochs=150):
