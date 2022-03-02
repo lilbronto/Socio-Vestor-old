@@ -12,6 +12,7 @@ tensorflow
 keras
 statsmodels
 scipy
+matplotlib
 
 # tests/linter
 black
