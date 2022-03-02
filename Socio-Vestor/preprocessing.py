@@ -4,8 +4,7 @@ import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
 
-from keras import layers
-from keras.layers import Masking
+from keras.preprocessing.sequence import pad_sequences
 
 
 def to_float(x):
@@ -57,4 +56,6 @@ def impute_data(df=None):
     df = df_temp
     return df
 
-# def masking(df=None):
+def padding(df=None):
+    df_pad = pad_sequences(df, dtype='float64', value=-42069)
+    return df_pad
