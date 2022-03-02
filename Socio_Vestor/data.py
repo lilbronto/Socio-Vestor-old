@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import numpy as np
 
 apikey_av = "GA32KX1XU3RE15LO"
 url_av = "https://www.alphavantage.co/query?"
