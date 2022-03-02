@@ -63,9 +63,7 @@ class Trainer():
         client = storage.Client()
 
         bucket = client.bucket(BUCKET_NAME)
-
         blob = bucket.blob(STORAGE_LOCATION)
-
         blob.upload_from_filename('sociovestor.joblib')
         print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
 
