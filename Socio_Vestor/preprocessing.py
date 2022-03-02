@@ -3,6 +3,7 @@ import numpy as np
 
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
+from sklearn.preprocessing import MinMaxScaler
 
 from keras.preprocessing.sequence import pad_sequences
 
@@ -59,3 +60,8 @@ def impute_data(df=None):
 def padding(df=None):
     df_pad = pad_sequences(df, dtype='float64', value=-42069)
     return df_pad
+
+def scale(df=None):
+    mm_scaler = MinMaxScaler()
+    df_scaled = mm_scaler.fit_transform(df)
+    return df_scaled
