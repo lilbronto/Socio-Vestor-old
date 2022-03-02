@@ -7,21 +7,21 @@ import numpy as np
 import pandas as pd
 
 from Socio_Vestor.data import get_intraday_data
-from Socio_Vestor.preprocessing import clean_data, df_optimized
+from Socio_Vestor.preprocessing import clean_data
 
 class SimpleRnn():
 
     def __init__(self):
-        return self
+        pass
 
     def get_data(self):
         df = get_intraday_data()
         # clean data
         df_cleaned = clean_data(df)
         # reduce size
-        df_reduced = df_optimized(df_cleaned)
+        #df_reduced = df_optimized(df_cleaned)
         # set X and y
-        data = pd.DataFrame(df_reduced['open'])
+        data = pd.DataFrame(df_cleaned['open'])
         for i in range(1, 13):
             data[f't - {i}'] = data['open'].shift(i)
         data.dropna(inplace=True)
