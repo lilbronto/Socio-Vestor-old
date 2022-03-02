@@ -63,3 +63,54 @@ class SimpleRnn():
                         epochs=epochs,
                         callbacks=[es], verbose=0)
         return self.model
+
+
+class LSTM():
+
+    def __init__(self):
+        pass
+
+    def get_data(self, X_scaled, y):
+
+        train_size = 0.6
+        index = round(train_size*X_scaled.shape[0])
+
+        X_train = X_scaled.iloc[:index]
+        X_test = X_scaled.iloc[index:]
+
+        X_train_array = np.array(X_train).astype(np.float32)
+        X_test_array = np.array(X_test).astype(np.float32)
+
+        X_train_array = np.expand_dims(X_train_array, 1)
+        X_test_array = np.expand_dims(X_test_array, 1)
+
+        y_open_price = pd.DataFrame(y['price_open'])
+        y_train = y_open_price.iloc[:index]
+        y_test = y_open_price.iloc[index:]
+        y_train_array = np.array(y_train['price_open']).astype(np.float32)
+        y_test_array = np.array(y_test['price_open']).astype(np.float32)
+
+        return X_train_array, X_test_array, y_train_array, y_test_array
+
+    def build_LSTM(self):
+
+        model = Sequential()
+        model.add(layers.LSTM(units=2, activation='tanh', input_shape=(1,5)))
+        model.add(layers.Dense(1, activation="linear"))
+
+        model.compile(loss='mse',
+                      optimizer='adam',
+                      metrics="accuracy")
+        return model
+
+    def train_LSTM(self, X_train_array, y_train_array, epochs=150):
+
+        es = EarlyStopping(monitor='val_loss', verbose=1, patience=20, restore_best_weights=True)
+        self.model = self.build_LSTM()
+        self.model.fit(X_train_array, y_train_array,
+                       batch_size=16,
+                       epochs=epochs,
+                       validation_split=0.2,
+                       callbacks=[es],
+                       verbose=1)
+        return self.model
