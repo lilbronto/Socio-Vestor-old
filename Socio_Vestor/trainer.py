@@ -4,8 +4,6 @@ import mlflow
 from  mlflow.tracking import MlflowClient
 import joblib
 from google.cloud import storage
-import pandas as pd
-import numpy as np
 
 from Socio_Vestor.params import BUCKET_NAME, STORAGE_LOCATION
 
@@ -87,8 +85,6 @@ if __name__ == "__main__":
     trainer.mlflow_log_metric("rmse", evaluated_model)
     trainer.mlflow_log_param("model", "SimpleRNN")
     trainer.mlflow_log_param("student_name", trainer.experiment_name)
-
-
 
     experiment_id = trainer.mlflow_experiment_id
     print(f"experiment URL: https://mlflow.lewagon.co/#/experiments/{experiment_id}")
