@@ -8,8 +8,6 @@ import pandas as pd
 import numpy as np
 
 from Socio_Vestor.params import BUCKET_NAME, STORAGE_LOCATION
-from Socio_Vestor.data import get_spy_data
-from Socio_Vestor.preprocessing import clean_data, df_optimized
 
 from Socio_Vestor.models import SimpleRnn
 
