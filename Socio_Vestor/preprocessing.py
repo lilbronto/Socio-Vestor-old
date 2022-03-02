@@ -1,5 +1,11 @@
-from sklearn.pipeline import Pipeline
 import pandas as pd
+import numpy as np
+
+from sklearn.pipeline import Pipeline
+from sklearn.impute import KNNImputer
+
+from keras.preprocessing.sequence import pad_sequences
+
 
 def to_float(x):
     return float(x)
@@ -39,3 +45,17 @@ def df_optimized(df, verbose=True, **kwargs):
     if verbose:
         print("optimized size by {} % | {} GB".format(ratio, GB))
     return df
+
+def impute_data(df=None):
+    knn_imp = KNNImputer(n_neighbors=2, missing_values=np.nan, weights='distance')
+
+    df_temp = knn_imp.fit_transform(df)
+    df_temp = pd.DataFrame(df_temp)
+    df_temp.columns = df.columns
+    df_temp.index = df.index
+    df = df_temp
+    return df
+
+def padding(df=None):
+    df_pad = pad_sequences(df, dtype='float64', value=-42069)
+    return df_pad
