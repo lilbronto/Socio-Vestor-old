@@ -61,7 +61,7 @@ class SimpleRnn():
                         validation_split=0.2,
                         batch_size=8,
                         epochs=epochs,
-                        callbacks=[es], verbose=0)
+                        callbacks=[es], verbose=1)
         return self.model
 
 
