@@ -1,3 +1,4 @@
+from this import d
 import requests
 import pandas as pd
 import numpy as np
@@ -116,6 +117,60 @@ def get_intraday_data():
 
     return data_SPY_ext_hist
 
+def get_unemployment_data():
+
+    function_ur = "UNEMPLOYMENT"
+    params_ur = {"function" : f"{function_ur}",
+                "apikey" : f"{apikey_av}"
+                }
+
+    response_unemployment_rate = requests.get(url_av, params=params_ur).json()
+
+    data_unemployment_rate = pd.DataFrame.from_dict(response_unemployment_rate['data'])
+    data_unemployment_rate = data_unemployment_rate.set_index('date')
+    data_unemployment_rate = data_unemployment_rate.rename(columns={"value": "unemployment_rate"})
+    data_unemployment_rate = data_unemployment_rate.sort_values(by='date', ascending=True)
+
+    return data_unemployment_rate
+
+def get_interest_data():
+
+    function_ir = "FEDERAL_FUNDS_RATE"
+    interval_ir = "monthly"
+
+    params_ir = {"function" : f"{function_ir}",
+                "interval" : f"{interval_ir}",
+                "apikey" : f"{apikey_av}"
+                }
+
+    response_interest_rate = requests.get(url_av, params=params_ir).json()
+
+    data_interest_rate = pd.DataFrame.from_dict(response_interest_rate['data'])
+    data_interest_rate = data_interest_rate.set_index('date')
+    data_interest_rate = data_interest_rate.rename(columns={"value": "interest_rate"})
+    data_interest_rate = data_interest_rate.sort_values(by='date', ascending=True)
+
+    return data_interest_rate
+
+def get_treasury_data():
+
+    function_ty = "TREASURY_YIELD"
+    interval_ty = "monthly"
+
+    params_iy = {"function" : f"{function_ty}",
+                "interval" : f"{interval_ty}",
+                "apikey" : f"{apikey_av}"
+                }
+
+    response_treasury_yield = requests.get(url_av, params=params_iy).json()
+
+    data_treasury_yield = pd.DataFrame.from_dict(response_treasury_yield['data'])
+    data_treasury_yield = data_treasury_yield.set_index('date')
+    data_treasury_yield = data_treasury_yield.rename(columns={"value": "treasury_yield"})
+    data_treasury_yield = data_treasury_yield.sort_values(by='date', ascending=True)
+
+    return data_treasury_yield
+
 def get_main_df():
 
     data_SPY = get_spy_data()
@@ -123,8 +178,15 @@ def get_main_df():
     data_inflation = get_inflation_data()
     data_consumer_sentiment = get_consumer_sentiment_data()
     data_ss = get_social_sentiment_data()
+    data_unemployment_rate = get_unemployment_data()
+    data_interest_rate = get_interest_data()
+    data_treasury_yield = get_treasury_data()
 
-    df_main = pd.concat([data_SPY, data_CPI, data_inflation, data_consumer_sentiment, data_ss], axis=1)
+    df_main = pd.concat([data_SPY, data_CPI, data_inflation,
+                         data_consumer_sentiment, data_ss,
+                         data_unemployment_rate, data_interest_rate,
+                         data_treasury_yield], axis=1)
+
     df_main = df_main.sort_values(by='date', ascending=True)
     df_main = df_main.loc['2000-01-01':]
 
