@@ -77,19 +77,14 @@ if __name__ == "__main__":
 
     # initialize a trainer and use it to save the model in the cloud
     trainer = Trainer()
-    trainer.save_model(model.model)
+    #trainer.save_model(model.model)
 
     # evaluate the model and print its score
     evaluated_model = trainer.evaluate(model, X_test, y_test)
 
     # use mlflow to keep track of the hyperparameters
     trainer.mlflow_log_metric("rmse", evaluated_model)
-<<<<<<< HEAD
-    trainer.mlflow_log_param("model", "SimpleRNN")
-    trainer.mlflow_log_param("timespan", "1 Year")
-=======
-    trainer.mlflow_log_param("model", "LSTM_full_df")
->>>>>>> f5109d9fad90a298984e392e2788144130b8a42c
+    trainer.mlflow_log_param("model", "LSTM_100units")
     trainer.mlflow_log_param("student_name", trainer.experiment_name)
 
     # print the website where the hyperparameters can be found

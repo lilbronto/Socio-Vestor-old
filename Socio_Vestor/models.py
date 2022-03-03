@@ -102,7 +102,7 @@ class LSTM():
 
         # Padding Layer (func)
         model = Sequential()
-        model.add(layers.Masking(mask_value=-42069, input_shape=(1,8)))
+        model.add(layers.Masking(mask_value=-42069, input_shape=(1,5)))
         model.add(layers.LSTM(units=20, activation='tanh'))
         model.add(layers.Dense(1, activation="linear"))
 
