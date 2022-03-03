@@ -72,6 +72,7 @@ class LSTM():
 
     def get_data(self):
         df_main = get_main_df()
+        df_main.replace(np.nan,-42069,inplace=True)
         X = df_main.drop(['price_open', 'price_high', 'price_low', 'price_close'], axis=1)
         y = df_main[['price_open', 'price_high', 'price_low', 'price_close']]
 
@@ -101,8 +102,8 @@ class LSTM():
 
         # Padding Layer (func)
         model = Sequential()
-        # Masking Layer (func)
-        model.add(layers.LSTM(units=20, activation='tanh', input_shape=(1,5)))
+        model.add(layers.Masking(mask_value=-42069, input_shape=(1,5)))
+        model.add(layers.LSTM(units=20, activation='tanh'))
         model.add(layers.Dense(1, activation="linear"))
 
         model.compile(loss='mse',

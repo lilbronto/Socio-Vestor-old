@@ -7,7 +7,7 @@ from google.cloud import storage
 
 from Socio_Vestor.params import BUCKET_NAME, STORAGE_LOCATION
 
-from Socio_Vestor.models import SimpleRnn
+from Socio_Vestor.models import SimpleRnn, LSTM
 
 class Trainer():
 
@@ -71,7 +71,7 @@ class Trainer():
 if __name__ == "__main__":
 
     # import your model, get the train and test data and train it
-    model = SimpleRnn()
+    model = LSTM()
     X_train, X_test, y_train, y_test = model.get_data()
     model.train_rnn(X_train, y_train)
 
