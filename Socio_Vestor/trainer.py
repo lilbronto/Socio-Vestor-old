@@ -84,8 +84,12 @@ if __name__ == "__main__":
 
     # use mlflow to keep track of the hyperparameters
     trainer.mlflow_log_metric("rmse", evaluated_model)
+<<<<<<< HEAD
     trainer.mlflow_log_param("model", "SimpleRNN")
     trainer.mlflow_log_param("timespan", "1 Year")
+=======
+    trainer.mlflow_log_param("model", "LSTM_full_df")
+>>>>>>> f5109d9fad90a298984e392e2788144130b8a42c
     trainer.mlflow_log_param("student_name", trainer.experiment_name)
 
     # print the website where the hyperparameters can be found
