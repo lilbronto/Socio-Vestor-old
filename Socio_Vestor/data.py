@@ -105,7 +105,7 @@ def get_intraday_data():
 
     function = "TIME_SERIES_INTRADAY_EXTENDED"
     symbol = "SPY"
-    interval = "1min"
+    interval = "5min"
     slice_ = "year1month1"
 
     url = f"https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval={interval}&slice={slice_}&apikey={apikey_av}"
@@ -126,6 +126,6 @@ def get_main_df():
 
     df_main = pd.concat([data_SPY, data_CPI, data_inflation, data_consumer_sentiment, data_ss], axis=1)
     df_main = df_main.sort_values(by='date', ascending=True)
-    df_main = df_main.loc['2021-03-01':]
+    df_main = df_main.loc['2000-01-01':]
 
     return df_main
