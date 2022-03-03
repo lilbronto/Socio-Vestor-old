@@ -45,7 +45,7 @@ class SimpleRnn():
         opt = optimizers.RMSprop(learning_rate=0.01)
 
         model = Sequential()
-        model.add(SimpleRNN(20, activation='relu', input_shape=(12,1)))
+        model.add(SimpleRNN(32, activation='relu', input_shape=(12,1)))
         model.add(Dense(10, activation="relu"))
         model.add(layers.Dense(1, activation="linear"))
 
