@@ -64,4 +64,5 @@ def padding(df=None):
 def scale(df=None):
     mm_scaler = MinMaxScaler()
     df_scaled = mm_scaler.fit_transform(df)
+    df_scaled = pd.DataFrame(df_scaled)
     return df_scaled
