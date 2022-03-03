@@ -126,6 +126,6 @@ def get_main_df():
 
     df_main = pd.concat([data_SPY, data_CPI, data_inflation, data_consumer_sentiment, data_ss], axis=1)
     df_main = df_main.sort_values(by='date', ascending=True)
-    df_main = df_main.loc['2000-01-01':]
+    df_main = df_main.loc['2021-03-01':]
 
     return df_main
