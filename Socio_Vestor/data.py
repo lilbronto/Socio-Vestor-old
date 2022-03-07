@@ -9,6 +9,7 @@ def get_spy_data(outputsize="compact"):
 
     function_intra = "TIME_SERIES_DAILY_ADJUSTED"
     symbol = "SPY"
+    outputsize = "full"
 
     params_intra = {"function" : f"{function_intra}",
             "symbol" : f"{symbol}",
@@ -37,7 +38,6 @@ def get_cpi_data():
 
     response_CPI = requests.get(url_av, params=params_cpi).json()
     data_CPI = pd.DataFrame.from_dict(response_CPI['data'])
-
     data_CPI = data_CPI.set_index('date')
     data_CPI = data_CPI.rename(columns={"value": "cpi"})
     data_CPI = data_CPI.sort_values(by='date', ascending=True)
@@ -45,6 +45,8 @@ def get_cpi_data():
     return data_CPI
 
 def get_inflation_data(function_inf="INFLATION_EXPECTATION"):
+
+    function_inf = "INFLATION_EXPECTATION"
 
     params_inf = {"function" : f"{function_inf}",
             "apikey" : f"{apikey_av}"
@@ -76,12 +78,12 @@ def get_consumer_sentiment_data():
 
     return data_consumer_sentiment
 
-def get_social_sentiment_data(from_date="2022-02-23",to_date = "2022-02-27"):
+def get_social_sentiment_data(from_date="2022-04-09",to_date = "2021-03-12"):
 
     symbol = "SPY"
 
     headers_dict = {"Authorization" : "Token 2b104f7101af551565791f4a47ab3ba7ef89598a",
-                    "Accept" : "application/json"}
+                "Accept" : "application/json"}
 
     url_ss = f"https://socialsentiment.io/api/v1/stocks/{symbol}/sentiment/daily/"
 
@@ -119,6 +121,7 @@ def get_intraday_data():
 def get_unemployment_data():
 
     function_ur = "UNEMPLOYMENT"
+
     params_ur = {"function" : f"{function_ur}",
                 "apikey" : f"{apikey_av}"
                 }
@@ -185,6 +188,7 @@ def get_main_df():
                          data_consumer_sentiment, data_ss,
                          data_unemployment_rate, data_interest_rate,
                          data_treasury_yield], axis=1)
+
 
     df_main = df_main.sort_values(by='date', ascending=True)
     df_main = df_main.loc['2000-01-01':]
