@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     # initialize a trainer and use it to save the model in the cloud
     trainer = Trainer()
-    #trainer.save_model(model.model)
+    trainer.save_model(model.model)
 
     # evaluate the model and print its score
     evaluated_model = trainer.evaluate(model, X_test, y_test)

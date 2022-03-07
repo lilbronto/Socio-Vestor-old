@@ -39,13 +39,13 @@ class SimpleRnn():
         X_test = np.expand_dims(X_test, axis=2)
         return X_train, X_test, y_train, y_test
 
-    def build_simple_rnn(self):
+    def build_simple_rnn(self, shape):
 
         metric = metrics.MAPE
         opt = optimizers.RMSprop(learning_rate=0.01)
 
         model = Sequential()
-        model.add(SimpleRNN(32, activation='relu', input_shape=(12,1)))
+        model.add(SimpleRNN(32, activation='relu', input_shape=(shape[1],shape[2])))
         model.add(Dense(10, activation="relu"))
         model.add(layers.Dense(1, activation="linear"))
 
@@ -56,7 +56,7 @@ class SimpleRnn():
 
     def train_rnn(self, X_train, y_train, epochs=500):
         es = EarlyStopping(monitor='val_loss', verbose=1, patience=20, restore_best_weights=True)
-        self.model = self.build_simple_rnn()
+        self.model = self.build_simple_rnn(X_train.shape)
         self.model.fit(X_train, y_train,
                         validation_split=0.2,
                         batch_size=8,
