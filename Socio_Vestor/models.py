@@ -2,12 +2,12 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import optimizers, metrics
-from keras.layers import Dense, SimpleRNN
+from keras.layers import Dense, SimpleRNN, Dropout
 import numpy as np
 import pandas as pd
 
 from Socio_Vestor.data import get_intraday_data, get_main_df
-from Socio_Vestor.preprocessing import clean_data, scale
+from Socio_Vestor.preprocessing import clean_data, ff_imputer, minmax_scaler, standard_scaler
 
 class SimpleRnn():
 
@@ -76,7 +76,7 @@ class LSTM():
         X = df_main.drop(['price_open', 'price_high', 'price_low', 'price_close'], axis=1)
         y = df_main[['price_open', 'price_high', 'price_low', 'price_close']]
 
-        X_scaled = scale(X)
+        X_scaled = standard_scaler(X)
 
         train_size = 0.6
         index = round(train_size*X_scaled.shape[0])
@@ -121,4 +121,65 @@ class LSTM():
                        validation_split=0.2,
                        callbacks=[es],
                        verbose=1)
+        return self.model
+
+class LayerLSTM():
+
+    def __init__(self):
+        pass
+
+    def get_data(self, x=30):
+        df_main = get_main_df()
+        df_main_imp = ff_imputer(df_main)
+        df_temp = df_main_imp[['price_open', 'weighted_ss']]
+        ss_scaler, df_scaled = minmax_scaler(df_temp)
+
+        X_train = []
+        y_train = []
+
+        index = round(df_scaled.shape[0]*0.7)
+        for i in range(x, index):
+            X_train.append(df_scaled[i-x:i,:])
+            y_train.append(df_scaled[i, 0])
+
+        X_train, y_train = np.array(X_train), np.array(y_train)
+
+        X_test = []
+        y_test = []
+        for i in range(index, df_scaled.shape[0]):
+            X_test.append(df_scaled[i-x:i,:])
+            y_test.append(df_scaled[i, 0])
+
+        X_test, y_test = np.array(X_test), np.array(y_test)
+
+        return X_train, X_test, y_train, y_test
+
+    def build_LSTM(self):
+
+        model = Sequential()
+        model.add(LSTM(units = 50, return_sequences = True))
+        model.add(Dropout(0.2))
+        model.add(LSTM(units = 50, return_sequences = True))
+        model.add(Dropout(0.2))
+        model.add(LSTM(units = 50, return_sequences = True))
+        model.add(Dropout(0.2))
+        model.add(LSTM(units = 50))
+        model.add(Dropout(0.2))
+        model.add(Dense(units = 1))
+        model.compile(optimizer = 'adam', loss = 'mean_squared_error')
+
+        model.compile(loss='mse',
+                    optimizer='adam',
+                    metrics='accuracy')
+        return model
+
+    def train_rnn(self, X_train, y_train, epochs=500):
+        es = EarlyStopping(monitor='val_loss', verbose=1, patience=15, restore_best_weights=True)
+        self.model = self.build_LSTM()
+        self.model.fit(X_train, y_train,
+                        batch_size=32,
+                        epochs=epochs,
+                        validation_split=0.2,
+                        callbacks=[es],
+                        verbose=1)
         return self.model
