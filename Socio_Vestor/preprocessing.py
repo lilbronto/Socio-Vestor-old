@@ -1,21 +1,10 @@
 import pandas as pd
 import numpy as np
 
-from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from keras.preprocessing.sequence import pad_sequences
-
-
-def to_float(x):
-    return float(x)
-
-def set_pipeline():
-
-    pipe = Pipeline([])
-
-    return pipe
 
 def clean_data(df):
     ''' returns a clean dataframe tailored to our task'''
@@ -47,7 +36,7 @@ def df_optimized(df, verbose=True, **kwargs):
         print("optimized size by {} % | {} GB".format(ratio, GB))
     return df
 
-def impute_data(df=None):
+def knn_imputer(df=None):
     knn_imp = KNNImputer(n_neighbors=2, missing_values=np.nan, weights='distance')
 
     df_temp = knn_imp.fit_transform(df)
@@ -57,11 +46,27 @@ def impute_data(df=None):
     df = df_temp
     return df
 
+def ff_imputer(df_main):
+    df_main_imp = df_main.astype('float32')
+    df_main_imp.iloc[:,4:] = df_main_imp.iloc[:,4:].fillna(method='ffill')
+    df_main_imp['weighted_ss'] = df_main_imp['weighted_ss'].fillna(df_main['weighted_ss'].mean())
+    df_main_imp = df_main_imp.dropna()
+    return df_main_imp
+
 def padding(df=None):
     df_pad = pad_sequences(df, dtype='float64', value=-42069)
     return df_pad
 
-def scale(df=None):
+def standard_scaler(X):
+
+    ss_scaler = StandardScaler()
+    X_scaled = ss_scaler.fit_transform(X)
+
+    return ss_scaler, X_scaled
+
+def minmax_scaler(X):
+
     mm_scaler = MinMaxScaler()
-    df_scaled = mm_scaler.fit_transform(df)
-    return df_scaled
+    X_scaled = mm_scaler.fit_transform(X)
+
+    return mm_scaler, X_scaled

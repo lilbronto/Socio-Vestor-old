@@ -27,6 +27,7 @@ mlflow
 s3fs
 fastapi
 uvicorn
+streamlit
 
 # utilities
 six>=1.14
@@ -34,4 +35,3 @@ joblib
 memoized-property
 termcolor
 notebook
-

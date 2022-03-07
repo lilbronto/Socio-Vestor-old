@@ -119,3 +119,7 @@ clean:
 	@rm -fr */__pycache__ __pycache__
 	@rm -fr build dist *.dist-info *.egg-info
 	@rm -fr */*.pyc
+
+
+streamlit:
+	@streamlit run app.py
