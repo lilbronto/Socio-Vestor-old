@@ -78,7 +78,7 @@ def get_consumer_sentiment_data():
 
     return data_consumer_sentiment
 
-def get_social_sentiment_data(from_date="2022-04-09",to_date = "2021-03-12"):
+def get_social_sentiment_data(from_date="2021-03-12",to_date = "2022-04-09"):
 
     symbol = "SPY"
 

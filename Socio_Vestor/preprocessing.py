@@ -48,7 +48,7 @@ def knn_imputer(df=None):
 
 def ff_imputer(df_main):
     df_main_imp = df_main.astype('float32')
-    df_main.iloc[:,4:] = df_main.iloc[:,4:].fillna(method='ffill')
+    df_main_imp.iloc[:,4:] = df_main_imp.iloc[:,4:].fillna(method='ffill')
     df_main_imp['weighted_ss'] = df_main_imp['weighted_ss'].fillna(df_main['weighted_ss'].mean())
     df_main_imp = df_main_imp.dropna()
     return df_main_imp
