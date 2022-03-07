@@ -2,7 +2,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import optimizers, metrics
-from keras.layers import Dense, SimpleRNN, Dropout
+from keras.layers import SimpleRNN
+from tensorflow.keras.layers import LSTM, Dropout, Dense
 import numpy as np
 import pandas as pd
 
@@ -130,9 +131,13 @@ class LayerLSTM():
 
     def get_data(self, x=30):
         df_main = get_main_df()
+        print(df_main.shape)
         df_main_imp = ff_imputer(df_main)
+        print(df_main_imp.shape)
         df_temp = df_main_imp[['price_open', 'weighted_ss']]
-        ss_scaler, df_scaled = minmax_scaler(df_temp)
+        print(df_temp.shape)
+        mm_scaler, df_scaled = minmax_scaler(df_temp)
+        print(df_scaled.shape)
 
         X_train = []
         y_train = []
@@ -157,15 +162,15 @@ class LayerLSTM():
     def build_LSTM(self):
 
         model = Sequential()
-        model.add(LSTM(units = 50, return_sequences = True))
+        model.add(layers.LSTM(units = 50, return_sequences = True))
         model.add(Dropout(0.2))
-        model.add(LSTM(units = 50, return_sequences = True))
+        model.add(layers.LSTM(units = 50, return_sequences = True))
         model.add(Dropout(0.2))
-        model.add(LSTM(units = 50, return_sequences = True))
+        model.add(layers.LSTM(units = 50, return_sequences = True))
         model.add(Dropout(0.2))
-        model.add(LSTM(units = 50))
+        model.add(layers.LSTM(units = 50))
         model.add(Dropout(0.2))
-        model.add(Dense(units = 1))
+        model.add(layers.Dense(units = 1))
         model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
         model.compile(loss='mse',
