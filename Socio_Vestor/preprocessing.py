@@ -1,21 +1,10 @@
 import pandas as pd
 import numpy as np
 
-from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from keras.preprocessing.sequence import pad_sequences
-
-
-def to_float(x):
-    return float(x)
-
-def set_pipeline():
-
-    pipe = Pipeline([])
-
-    return pipe
 
 def clean_data(df):
     ''' returns a clean dataframe tailored to our task'''
@@ -59,10 +48,7 @@ def knn_imputer(df=None):
 
 def ff_imputer(df_main):
     df_main_imp = df_main.astype('float32')
-    df_main_imp[['trade_volume','cpi', 'inflation', 'consumer_sentiment', 'weighted_ss',
-                 'unemployment_rate', 'interest_rate', 'treasury_yield']] = df_main_imp[['trade_volume','cpi',
-                'inflation', 'consumer_sentiment', 'weighted_ss','unemployment_rate',
-                'interest_rate', 'treasury_yield']].fillna(method='ffill')
+    df_main.iloc[:,4:] = df_main.iloc[:,4:].fillna(method='ffill')
     df_main_imp['weighted_ss'] = df_main_imp['weighted_ss'].fillna(df_main['weighted_ss'].mean())
     df_main_imp = df_main_imp.dropna()
     return df_main_imp
@@ -71,8 +57,16 @@ def padding(df=None):
     df_pad = pad_sequences(df, dtype='float64', value=-42069)
     return df_pad
 
-def scale(df=None):
+def standard_scaler(X):
+
+    ss_scaler = StandardScaler()
+    X_scaled = ss_scaler.fit_transform(X)
+
+    return ss_scaler, X_scaled
+
+def minmax_scaler(X):
+
     mm_scaler = MinMaxScaler()
-    df_scaled = mm_scaler.fit_transform(df)
-    df_scaled = pd.DataFrame(df_scaled)
-    return df_scaled
+    X_scaled = mm_scaler.fit_transform(X)
+
+    return mm_scaler, X_scaled
