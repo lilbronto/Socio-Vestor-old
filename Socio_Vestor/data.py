@@ -173,6 +173,49 @@ def get_treasury_data():
 
     return data_treasury_yield
 
+def get_real_gdp_data():
+    function_rgdp = "REAL_GDP"
+    interval_rgdp = "quarterly"
+
+    params_rgdp = {"function" : f"{function_rgdp}",
+               "interval" : f"{interval_rgdp}",
+               "apikey" : f"{apikey_av}"
+              }
+
+    response_rgdp = requests.get(url_av, params=params_rgdp).json()
+
+    data_rgdp = pd.DataFrame.from_dict(response_rgdp['data'])
+    data_rgdp = data_rgdp.set_index('date')
+
+    data_rgdp = data_rgdp.rename(columns={"value": "real_gdp"})
+    data_rgdp = data_rgdp.sort_values(by='date', ascending=True)
+
+    return data_rgdp
+
+def get_macd_data():
+    function_macd = "MACD"
+    symbol_macd = "SPY"
+    interval_macd = "daily"
+    series_type = "close"
+
+    params_macd = {"function" : f"{function_macd}",
+                "symbol": f"{symbol_macd}",
+                "interval" : f"{interval_macd}",
+                "series_type" : f"{series_type}",
+                "apikey" : f"{apikey_av}"
+                }
+
+    response_macd = requests.get(url_av, params=params_macd).json()
+
+    macd_dates_df = pd.DataFrame.from_dict(response_macd.get('Technical Analysis: MACD').keys())
+    macd_df = pd.DataFrame.from_dict(response_macd.get('Technical Analysis: MACD').values())
+    data_macd = pd.concat([macd_dates_df, macd_df], axis=1)
+    data_macd = data_macd.rename(columns={0: "date"})
+    data_macd = data_macd.set_index('date')
+    data_macd = data_macd.sort_values(by='date', ascending=True)
+
+    return data_macd
+
 def get_main_df():
 
     data_SPY = get_spy_data()
@@ -183,14 +226,18 @@ def get_main_df():
     data_unemployment_rate = get_unemployment_data()
     data_interest_rate = get_interest_data()
     data_treasury_yield = get_treasury_data()
+    data_real_gdp = get_real_gdp_data()
+    data_macd = get_macd_data()
 
     df_main = pd.concat([data_SPY, data_CPI, data_inflation,
                          data_consumer_sentiment, data_ss,
                          data_unemployment_rate, data_interest_rate,
-                         data_treasury_yield], axis=1)
+                         data_treasury_yield, data_real_gdp, data_macd], axis=1)
 
 
     df_main = df_main.sort_values(by='date', ascending=True)
     df_main = df_main.loc['2000-01-01':]
+    df_main = df_main.astype('float32')
+    df_main.index = pd.to_datetime(df_main.index)
 
     return df_main
