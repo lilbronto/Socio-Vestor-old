@@ -5,7 +5,7 @@ import joblib
 import pandas as pd
 
 from Socio_Vestor.data import get_intraday_data, get_main_df
-from Socio_Vestor.preprocessing import clean_data, ff_imputer
+from Socio_Vestor.preprocessing import clean_data, ff_imputer, minmax_scaler
 
 '''
 Get the timeframe for the Price data that will be used to make our prediction
@@ -28,18 +28,28 @@ Make an API Call to fetch the data we need for our prediction
 # preprocess the data?
 #X_pred_imp = ff_imputer(X_pred)
 
-df = get_intraday_data()
-df_cleaned = clean_data(df)
-data = pd.DataFrame(df_cleaned['open'])
-for i in range(1, 13):
-    data[f't - {i}'] = data['open'].shift(i)
-data.dropna(inplace=True)
-X = data.drop(['open'], axis=1)
-y = data['open']
-train_size = 0.7
-index = round(train_size*X.shape[0])
-X_test = X.iloc[index:]
-X_test = np.expand_dims(X_test, axis=2)
+df_main = get_main_df()
+df_main_imp = ff_imputer(df_main)
+df_temp = df_main_imp[['price_open', 'weighted_ss']]
+mm_scaler, df_scaled = minmax_scaler(df_temp)
+
+X_train = []
+y_train = []
+x=30
+index = round(df_scaled.shape[0]*0.7)
+for i in range(x, index):
+    X_train.append(df_scaled[i-x:i,:])
+    y_train.append(df_scaled[i, 0])
+
+X_train, y_train = np.array(X_train), np.array(y_train)
+
+X_test = []
+y_test = []
+for i in range(index, df_scaled.shape[0]):
+    X_test.append(df_scaled[i-x:i,:])
+    y_test.append(df_scaled[i, 0])
+
+X_test = np.array(X_test)
 # load the trained model
 model = joblib.load('sociovestor.joblib')
 
