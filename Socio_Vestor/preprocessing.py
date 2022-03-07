@@ -47,7 +47,7 @@ def df_optimized(df, verbose=True, **kwargs):
         print("optimized size by {} % | {} GB".format(ratio, GB))
     return df
 
-def impute_data(df=None):
+def knn_imputer(df=None):
     knn_imp = KNNImputer(n_neighbors=2, missing_values=np.nan, weights='distance')
 
     df_temp = knn_imp.fit_transform(df)
@@ -56,6 +56,16 @@ def impute_data(df=None):
     df_temp.index = df.index
     df = df_temp
     return df
+
+def ff_imputer(df_main):
+    df_main_imp = df_main.astype('float32')
+    df_main_imp[['trade_volume','cpi', 'inflation', 'consumer_sentiment', 'weighted_ss',
+                 'unemployment_rate', 'interest_rate', 'treasury_yield']] = df_main_imp[['trade_volume','cpi',
+                'inflation', 'consumer_sentiment', 'weighted_ss','unemployment_rate',
+                'interest_rate', 'treasury_yield']].fillna(method='ffill')
+    df_main_imp['weighted_ss'] = df_main_imp['weighted_ss'].fillna(df_main['weighted_ss'].mean())
+    df_main_imp = df_main_imp.dropna()
+    return df_main_imp
 
 def padding(df=None):
     df_pad = pad_sequences(df, dtype='float64', value=-42069)
