@@ -7,7 +7,7 @@ from google.cloud import storage
 
 from Socio_Vestor.params import BUCKET_NAME, STORAGE_LOCATION
 
-from Socio_Vestor.models import SimpleRnn, LSTM
+from Socio_Vestor.models import LayerLSTM, SimpleRnn, LSTM
 
 class Trainer():
 
@@ -71,9 +71,9 @@ class Trainer():
 if __name__ == "__main__":
 
     # import your model, get the train and test data and train it
-    model = SimpleRnn()
+    model = LayerLSTM()
     X_train, X_test, y_train, y_test = model.get_data()
-    model.train_rnn(X_train, y_train)
+    model.train_LSTM(X_train, y_train)
 
     # initialize a trainer and use it to save the model in the cloud
     trainer = Trainer()
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # use mlflow to keep track of the hyperparameters
     trainer.mlflow_log_metric("rmse", evaluated_model)
-    trainer.mlflow_log_param("model", "LSTM_100units")
+    trainer.mlflow_log_param("model", "LSTM with four Layers")
     trainer.mlflow_log_param("student_name", trainer.experiment_name)
 
     # print the website where the hyperparameters can be found

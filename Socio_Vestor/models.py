@@ -173,7 +173,7 @@ class LayerLSTM():
                     metrics='accuracy')
         return model
 
-    def train_rnn(self, X_train, y_train, epochs=500):
+    def train_LSTM(self, X_train, y_train, epochs=500):
         es = EarlyStopping(monitor='val_loss', verbose=1, patience=15, restore_best_weights=True)
         self.model = self.build_LSTM()
         self.model.fit(X_train, y_train,
