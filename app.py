@@ -23,17 +23,22 @@ start_date = st.date_input(
 Make an API Call to fetch the data we need for our prediction
 '''
 # Get the data
-data = get_intraday_data()
-data = data.loc[start_date:]
-df_cleaned = clean_data(data)
+#data = get_intraday_data()
+#df_cleaned = clean_data(data)
 # preprocess the data?
 #X_pred_imp = ff_imputer(X_pred)
-#X_test = X_pred_imp['price_open'] # drop the columns we did not use
+
+df = get_intraday_data()
+df_cleaned = clean_data(df)
 data = pd.DataFrame(df_cleaned['open'])
 for i in range(1, 13):
     data[f't - {i}'] = data['open'].shift(i)
 data.dropna(inplace=True)
-X_test = data.drop(['open'], axis=1)
+X = data.drop(['open'], axis=1)
+y = data['open']
+train_size = 0.7
+index = round(train_size*X.shape[0])
+X_test = X.iloc[index:]
 X_test = np.expand_dims(X_test, axis=2)
 # load the trained model
 model = joblib.load('sociovestor.joblib')
