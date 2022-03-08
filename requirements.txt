@@ -38,3 +38,4 @@ joblib
 memoized-property
 termcolor
 notebook
+plotly
