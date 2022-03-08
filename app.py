@@ -6,16 +6,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.graph_objects as go
+import requests
 
 from Socio_Vestor.data import get_intraday_data, get_main_df
 from Socio_Vestor.preprocessing import clean_data, ff_imputer, minmax_scaler
 
 st.set_page_config(layout="centered")
 col1, col2 = st.columns((5,1))
+
+def get_latest_price():
+    url = "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=SPY&interval=1min&outputsize=compact&apikey=GA32KX1XU3RE15LO"
+    SPY_intra = requests.get(url).json()
+    data_SPY_intra = pd.DataFrame(SPY_intra['Time Series (1min)']).transpose()
+    data_SPY_intra = data_SPY_intra['1. open']
+    return data_SPY_intra[0]
+
+SPY_price = f"${get_latest_price()}"
+
 col1.markdown('''
             # Socio-Vestor
             ''')
-col2.metric("SPDR S&P 500", "$437.8", "-$1.25")
+col2.metric(label="SPDR S&P 500", value=SPY_price, delta="-$1.25")
 st.markdown('''
             ### Predicting the Stock Market Using Social Sentiment
             - Bullet Point 1
@@ -73,7 +84,8 @@ fig, ax = plt.subplots()
 fig.set_size_inches([10,7])
 
 corr = df_main.corr()
-cmap = sns.cubehelix_palette(as_cmap=True, light=.9)
+cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
+#cmap = sns.cubehelix_palette(as_cmap=True, start=2.8, rot=.1, light=.9)
 sns.heatmap(corr, cmap=cmap, mask=corr.isnull(), linecolor='w', linewidths=0.5)
 
 st.pyplot(fig)
@@ -98,7 +110,6 @@ fig1 = go.Figure()
 fig1.add_trace(go.Scatter(x=df_pred.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
 fig1.add_trace(go.Scatter(x=df_pred.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
 fig1.add_trace(go.Bar(x=df_pred.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
-fig1.update_layout(title='Title',xaxis_title='Date',yaxis_title='SPY-ETF Price')
-fig1.show()
+fig1.update_layout(title='Prediction including social sentiment',xaxis_title='Date',yaxis_title='SPY-ETF Price')
 
-st.pyplot(fig1)
+st.plotly_chart(fig1)
