@@ -3,7 +3,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import optimizers, metrics
 from keras.layers import SimpleRNN
-from tensorflow.keras.layers import LSTM, Dropout, Dense
+from tensorflow.keras.layers import Dropout, Dense
 import numpy as np
 import pandas as pd
 
