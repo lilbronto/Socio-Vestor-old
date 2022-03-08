@@ -107,7 +107,7 @@ def get_intraday_data():
 
     function = "TIME_SERIES_INTRADAY_EXTENDED"
     symbol = "SPY"
-    interval = "5min"
+    interval = "1min"
     slice_ = "year1month1"
 
     url = f"https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval={interval}&slice={slice_}&apikey={apikey_av}"
