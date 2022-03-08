@@ -17,7 +17,7 @@ st.set_page_config(layout="centered")
 col1, col2 = st.columns((5,1))
 
 # Autorefresh the Streamlit page every 10 seconds
-# st_autorefresh(interval= 10 * 1000, key="dataframerefresh")
+st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
 
 def get_latest_price():
     url = "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=SPY&interval=1min&outputsize=compact&apikey=GA32KX1XU3RE15LO"
