@@ -133,12 +133,12 @@ def ff_imputer(df_main):
 #     return df_pad
 
 
-# def standard_scaler(X):
+def standard_scaler(X):
 
-#     ss_scaler = StandardScaler()
-#     X_scaled = ss_scaler.fit_transform(X)
+    ss_scaler = StandardScaler()
+    X_scaled = ss_scaler.fit_transform(X)
 
-#     return ss_scaler, X_scaled
+    return ss_scaler, X_scaled
 
 
 def minmax_scaler(X):

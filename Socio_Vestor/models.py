@@ -1,14 +1,17 @@
+from re import S
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import optimizers, metrics
 from keras.layers import SimpleRNN
 from tensorflow.keras.layers import Dropout, Dense
+from tensorflow.keras.metrics import MeanSquaredError, LogCoshError
+
 import numpy as np
 import pandas as pd
 
 from Socio_Vestor.data import get_intraday_data, get_main_df
-from Socio_Vestor.preprocessing import clean_data, ff_imputer, minmax_scaler, standard_scaler
+from Socio_Vestor.preprocessing import df_trend, impute_df, linearize_df, s_scaler, fill_nan, clean_data, ff_imputer, minmax_scaler, standard_scaler
 
 class SimpleRnn():
 
@@ -187,4 +190,58 @@ class LayerLSTM():
                         validation_split=0.2,
                         callbacks=[es],
                         verbose=1)
+        return self.model
+
+class SimpleRNN_main():
+    def __init__(self):
+        pass
+
+    def get_data(self):
+        df_main = get_main_df()
+
+        X = df_main[['real_gdp', 'cpi', 'MACD_Signal', 'MACD', 'MACD_Hist', 'trend_int']]
+        y = df_main['price_close']
+
+        y = pd.DataFrame(y)
+
+        X_imp = impute_df(X)
+        X_lin = linearize_df(X_imp)
+        X_scaled = s_scaler(X_lin)
+
+        train_size = 0.8
+        index = round(train_size*X.shape[0])
+        X_train = X_scaled.iloc[:index]
+        y_train = y.iloc[:index]
+        X_test = X_scaled.iloc[index:]
+        y_test = y.iloc[index:]
+
+        y_train = y_train.fillna(value=-2000)
+        X_train = X_train.fillna(value=-2000)
+
+        return(X_train, y_train, X_test, y_test)
+
+    def SimpleRNN(self):
+
+        metrics = MeanSquaredError(), LogCoshError()
+
+        model = Sequential()
+        model.add(layers.Masking(mask_value=-2000, input_shape=(5,1)))
+        model.add(SimpleRNN(32, activation='relu'))
+        model.add(Dense(10, activation="relu"))
+        model.add(layers.Dense(1, activation="linear"))
+
+        model.compile(loss='mse',
+                    optimizer='adam',
+                    metrics= [metrics])
+        return model
+
+    def train_SimpleRNN(self, X_train, y_train, epochs=500):
+        es = EarlyStopping(monitor='val_loss', verbose=1, patience=20, restore_best_weights=True)
+
+        self.model = self.SimpleRNN()
+        self.model.fit(X_train, y_train,
+                    validation_split=0.2,
+                    batch_size=64,
+                    epochs=100,
+                    callbacks=[es], verbose=1)
         return self.model
