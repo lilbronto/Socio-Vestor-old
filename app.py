@@ -7,12 +7,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.graph_objects as go
 import requests
+import yfinance as yf
+from streamlit_autorefresh import st_autorefresh
 
 from Socio_Vestor.data import get_intraday_data, get_main_df
 from Socio_Vestor.preprocessing import clean_data, ff_imputer, minmax_scaler
 
 st.set_page_config(layout="centered")
 col1, col2 = st.columns((5,1))
+
+# Autorefresh the Streamlit page every 10 seconds
+# st_autorefresh(interval= 10 * 1000, key="dataframerefresh")
 
 def get_latest_price():
     url = "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=SPY&interval=1min&outputsize=compact&apikey=GA32KX1XU3RE15LO"
@@ -21,27 +26,17 @@ def get_latest_price():
     data_SPY_intra = data_SPY_intra['1. open']
     return data_SPY_intra[0]
 
-SPY_price = f"${get_latest_price()}"
+SPY_price = round(float(get_latest_price()))
+SPY_ratio = round((float(get_latest_price()) - 418.00),2)
 
 col1.markdown('''
             # Socio-Vestor
             ''')
-col2.metric(label="SPDR S&P 500", value=SPY_price, delta="-$1.25")
+col2.metric("SPDR S&P 500", f"{SPY_price} $", f"{SPY_ratio} $")
 st.markdown('''
             ### Predicting the Stock Market Using Social Sentiment
-            - Bullet Point 1
-            - Bullet Point 2
-            - Bullet Point 3
+            - Bullet Points
             ''')
-
-st.markdown('''
-            # Main Graph
-            ## Live Prediction
-            ''')
-st.write(f"Please select the timeframe for your prediction")
-start_date = st.date_input(
-    "Start Date:",
-    datetime.date(2022, 3, 3))
 
 # Get the data and chache it in order to avoid constant reloading
 @st.cache(allow_output_mutation=True)
@@ -68,31 +63,35 @@ def get_our_data():
 model, X_test, y_test, df_main = get_our_data()
 # # calculate a prediction
 y_pred = model.predict(X_test)
-y_pred_array = np.array(np.reshape(y_pred,y_pred.shape[0]))
-
-# Plot the predicted values on streamlit website
-st.line_chart(y_pred_array)
-
-st.markdown('''# Why?''')
 
 st.markdown('''
-            # How?
-            ## Feature Selection
+            # Live Prediction of the SPY Price
             ''')
+y_pred_live = 420.69 # Should be y_pred[-1]
+data = yf.download(tickers='SPY', period='1d', interval='1m')
+fig2 = go.Figure()
+fig2.add_trace(go.Scatter(x=data.index,y=data['Open'],name = 'Real SPY-ETF Price'))
+fig2.add_hline(y=y_pred_live, line_width=3, line_dash="dash", line_color="red")
+fig2.update_layout(title='Stock Price vs. Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
 
-fig, ax = plt.subplots()
-fig.set_size_inches([10,7])
+st.plotly_chart(fig2)
 
-corr = df_main.corr()
-cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
-#cmap = sns.cubehelix_palette(as_cmap=True, start=2.8, rot=.1, light=.9)
-sns.heatmap(corr, cmap=cmap, mask=corr.isnull(), linecolor='w', linewidths=0.5)
+# st.markdown('''
+#             ## Heatmap - Feature Selection
+#            ''')
 
-st.pyplot(fig)
+# fig, ax = plt.subplots()
+# fig.set_size_inches([10,7])
+
+# corr = df_main.corr()
+# cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
+# #cmap = sns.cubehelix_palette(as_cmap=True, start=2.8, rot=.1, light=.9)
+# sns.heatmap(corr, cmap=cmap, mask=corr.isnull(), linecolor='w', linewidths=0.5)
+
+# st.pyplot(fig)
 
 
 st.markdown('''# Social Media Error''')
-
 
 #creating database
 y_pred_n = pd.DataFrame(y_pred)
@@ -106,7 +105,6 @@ df_pred['diff'] = df_pred['y_test'] - df_pred['y_pred']
 
 #plotting a chart
 fig1 = go.Figure()
-
 fig1.add_trace(go.Scatter(x=df_pred.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
 fig1.add_trace(go.Scatter(x=df_pred.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
 fig1.add_trace(go.Bar(x=df_pred.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))

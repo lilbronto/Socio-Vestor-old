@@ -29,6 +29,8 @@ s3fs
 fastapi
 uvicorn
 streamlit
+yfinance
+streamlit_autorefresh
 
 # utilities
 six>=1.14
