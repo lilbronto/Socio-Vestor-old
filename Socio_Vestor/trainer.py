@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # import your model, get the train and test data and train it
     model = SimpleRNN_main()
-    X_train, X_test, y_train, y_test = model.get_data()
+    X_train, y_train, X_test, y_test = model.get_data()
     model.train_SimpleRNN(X_train, y_train)
 
     # initialize a trainer and use it to save the model in the cloud

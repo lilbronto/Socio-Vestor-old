@@ -198,10 +198,9 @@ class SimpleRNN_main():
 
     def get_data(self):
         df_main = get_main_df()
+        df_trend_df = df_trend(df_main)
 
-        df_trend = df_trend(df_main)
-
-        df_main = pd.concat([df_main, df_trend])
+        df_main = pd.concat([df_main, df_trend_df])
 
         X = df_main[['real_gdp', 'cpi', 'MACD_Signal', 'MACD', 'MACD_Hist', 'trend_int']]
         y = df_main['price_close']
@@ -222,9 +221,11 @@ class SimpleRNN_main():
         y_train = y_train.fillna(value=-2000)
         X_train = X_train.fillna(value=-2000)
 
-        return(X_train, y_train, X_test, y_test)
+        print(X_train, y_train, X_test, y_test)
 
-    def SimpleRNN(self):
+        return X_train, y_train, X_test, y_test
+
+    def Simple_RNN(self):
 
         metrics = MeanSquaredError(), LogCoshError()
 
@@ -242,7 +243,7 @@ class SimpleRNN_main():
     def train_SimpleRNN(self, X_train, y_train, epochs=500):
         es = EarlyStopping(monitor='val_loss', verbose=1, patience=20, restore_best_weights=True)
 
-        self.model = self.SimpleRNN()
+        self.model = self.Simple_RNN()
         self.model.fit(X_train, y_train,
                     validation_split=0.2,
                     batch_size=64,
