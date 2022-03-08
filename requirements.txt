@@ -12,6 +12,7 @@ tensorflow
 statsmodels
 scipy
 matplotlib
+plotly
 
 # tests/linter
 black
