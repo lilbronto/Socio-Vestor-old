@@ -153,16 +153,15 @@ model_LSTM, X_test_LSTM, y_test_LSTM, df_main = get_LSTM_data(df_main)
 y_pred_LSTM = model_LSTM.predict(X_test_LSTM)
 
 y_pred_LSTM = pd.DataFrame(y_pred_LSTM)
-y_pred_LSTM.index = pd.DataFrame(y_test_LSTM).index
+y_test_LSTM = pd.DataFrame(y_test_LSTM)
+y_pred_LSTM.index = y_test_LSTM.index
 #creating database
 y_pred_LSTM = y_pred_LSTM.rename(columns={ 0: 'y_pred'})
-y_test = pd.DataFrame(y_test_LSTM)
-y_test = y_test.rename(columns={ 0: 'y_test'})
+y_test = y_test_LSTM.rename(columns={ 0: 'y_test'})
 
 df_pred = pd.concat([y_test, y_pred_LSTM], axis=1)
 df_pred['diff'] = df_pred['y_test'] - df_pred['y_pred']
 df_pred = df_pred.reset_index()
-
 
 #plotting a chart
 fig4 = go.Figure()
