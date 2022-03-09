@@ -34,7 +34,7 @@ class Trainer():
     # Saving the Model
     def save_model(self, model):
         """ Save the trained model into a model.joblib file """
-        joblib.dump(model, 'simplernn_main.joblib')
+        joblib.dump(model, 'simplernn_main_2.joblib')
 
 
 if __name__ == "__main__":
