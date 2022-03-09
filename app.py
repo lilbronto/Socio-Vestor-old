@@ -18,6 +18,9 @@ from Socio_Vestor.preprocessing import clean_data, df_trend, ff_imputer, impute_
 st.set_page_config(layout="centered")
 col1, col2 = st.columns((5,1))
 
+width = 800
+height = 550
+
 # Autorefresh the Streamlit page every 10 seconds
 #st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
 
@@ -91,7 +94,7 @@ st.markdown('''
             ''')
 
 st.markdown('''
-            ## Accurate Prediction of the SPDR S&P 500 ETF Trust
+            ## Accurate Prediction of the SPDR S&P 500 ETF
            ''')
 # Calculate RNN Prediction
 model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
@@ -111,6 +114,7 @@ df_pred_SRNN['diff'] = df_pred_SRNN['y_test'] - df_pred_SRNN['y_pred']
 
 #plotting a chart
 fig1 = go.Figure()
+fig1.update_layout(autosize=False,width=width,height=height,)
 fig1.add_trace(go.Scatter(x=df_pred_SRNN.index, y=df_pred_SRNN['y_test'], name = 'Real SPY-ETF Price' ))
 fig1.add_trace(go.Scatter(x=df_pred_SRNN.index,y=df_pred_SRNN['y_pred'],name = 'Predicted SPY-ETF Price'))
 fig1.add_trace(go.Bar(x=df_pred_SRNN.index,y=df_pred_SRNN['diff'],name = 'prediction error',marker = {'color' : 'green'}))
@@ -123,7 +127,7 @@ st.markdown('''
            ''')
 
 fig2, ax = plt.subplots()
-fig2.set_size_inches([10,7])
+fig2.set_size_inches([16,11])
 
 corr = df_main.corr()
 cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
@@ -139,6 +143,7 @@ data_ss = data_ss.reset_index()
 
 # Plotting the Social Sentiment
 fig3 = go.Figure()
+fig3.update_layout(autosize=False,width=width-105,height=height,)
 fig3.add_trace(go.Scatter(x=data_ss['date'], y=data_ss['weighted_ss'], name = 'Weighted Social Sentiment' ))
 st.plotly_chart(fig3)
 
@@ -158,6 +163,7 @@ df_pred['diff'] = df_pred['y_test'] - df_pred['y_pred']
 
 #plotting a chart
 fig4 = go.Figure()
+fig4.update_layout(autosize=False,width=width,height=height,)
 fig4.add_trace(go.Scatter(x=df_pred.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
 fig4.add_trace(go.Scatter(x=df_pred.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
 fig4.add_trace(go.Bar(x=df_pred.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
@@ -171,6 +177,7 @@ st.markdown('''
 y_pred_live = 420.69 # Should be y_pred[-1]
 data = yf.download(tickers='SPY', period='1d', interval='1m')
 fig5 = go.Figure()
+fig5.update_layout(autosize=False,width=width-105,height=height,)
 fig5.add_trace(go.Scatter(x=data.index,y=data['Open'],name = 'Real SPY-ETF Price'))
 fig5.add_hline(y=y_pred_live, line_width=3, line_dash="dash", line_color="red")
 fig5.update_layout(title='Stock Price vs. Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
