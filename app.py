@@ -55,6 +55,7 @@ def get_LSTM_data(df_main):
     model_LSTM = joblib.load('sociovestor.joblib')
     return model_LSTM, X_test_LSTM, y_test_LSTM, df_main
 
+@st.cache(allow_output_mutation=True)
 def get_RNN_data(df_main):
     # SimpleRNN Model
     df_trend_df = df_trend(df_main)
@@ -113,7 +114,7 @@ fig1 = go.Figure()
 fig1.add_trace(go.Scatter(x=df_pred_SRNN.index, y=df_pred_SRNN['y_test'], name = 'Real SPY-ETF Price' ))
 fig1.add_trace(go.Scatter(x=df_pred_SRNN.index,y=df_pred_SRNN['y_pred'],name = 'Predicted SPY-ETF Price'))
 fig1.add_trace(go.Bar(x=df_pred_SRNN.index,y=df_pred_SRNN['diff'],name = 'prediction error',marker = {'color' : 'green'}))
-fig1.update_layout(title='Title',xaxis_title='Date',yaxis_title='SPY-ETF Price')
+fig1.update_layout(title='Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
 
 st.plotly_chart(fig1)
 
