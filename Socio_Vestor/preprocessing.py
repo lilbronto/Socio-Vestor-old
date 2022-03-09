@@ -23,7 +23,7 @@ def df_trend(df):
     df_trend['trend'].iloc[[-2]] = np.nan
     if math.isnan(df['price_close'].iloc[[-1]]):
         ### CHANGE -3 ACCORDING TO BANK HOLIDAYS AND WEEKENDS ###
-        df_trend['trend'].iloc[[-1]] = df['price_close'].iloc[[-5]]
+        df_trend['trend'].iloc[[-1]] = df['price_close'].iloc[[-2]]
     else:
         df_trend['trend'].iloc[[-1]] = df['price_close'].iloc[[-1]]
 
@@ -124,6 +124,13 @@ def ff_imputer(df_main):
     df_main_imp = df_main.astype('float32')
     df_main_imp.iloc[:,4:] = df_main_imp.iloc[:,4:].fillna(method='ffill')
     df_main_imp['weighted_ss'] = df_main_imp['weighted_ss'].fillna(df_main['weighted_ss'].mean())
+    df_main_imp = df_main_imp.dropna()
+    return df_main_imp
+
+def SRNN_imputer(df_main):
+    df_main_imp = df_main.astype('float32')
+    df_main_imp[['real_gdp', 'cpi', 'MACD_Signal', 'MACD', 'MACD_Hist', 'trend_int']] = df_main_imp[['real_gdp', 'cpi', 'MACD_Signal', 'MACD', 'MACD_Hist', 'trend_int']].fillna(method='ffill')
+    df_main_imp = df_main_imp.fillna(df_main.mean())
     df_main_imp = df_main_imp.dropna()
     return df_main_imp
 

@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from Socio_Vestor.data import get_intraday_data, get_main_df
-from Socio_Vestor.preprocessing import df_trend, impute_df, linearize_df, s_scaler, fill_nan, clean_data, ff_imputer, minmax_scaler, standard_scaler
+from Socio_Vestor.preprocessing import SRNN_imputer, df_trend, linearize_df, s_scaler, clean_data, ff_imputer, minmax_scaler, standard_scaler
 
 class SimpleRnn():
 
@@ -207,7 +207,7 @@ class SimpleRNN_main():
 
         y = pd.DataFrame(y)
 
-        X_imp = impute_df(X)
+        X_imp = SRNN_imputer(X)
         X_lin = linearize_df(X_imp)
         X_scaled = s_scaler(X_lin)
 
