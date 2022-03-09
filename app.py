@@ -62,7 +62,7 @@ def get_LSTM_data(df_main):
 def get_RNN_data(df_main):
     # SimpleRNN Model
     df_trend_df = df_trend(df_main)
-    df_main = pd.concat([df_main, df_trend_df])
+    df_main = pd.concat([df_main, df_trend_df], axis=1)
 
     X = df_main[['real_gdp', 'cpi', 'MACD_Signal', 'MACD', 'MACD_Hist', 'trend_int']]
     y = df_main['price_close']
@@ -100,26 +100,35 @@ st.markdown('''
 model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
 
 y_pred_SRNN = model_SRNN.predict(X_test_SRNN)
-y_pred_sc = pd.DataFrame(y_pred_SRNN)
-y_pred_sc.index = y_test_SRNN.index
-y_pred_sc = y_pred_sc.rename(columns={0: "y_pred"})
-y_pred_sc['y_pred'] = y_pred_sc['y_pred']*1.5
-y_pred_sc['y_pred'] = y_pred_sc['y_pred']-100
-#creating database
-y_test_S = y_test_SRNN.rename(columns={ 'price_close' : 'y_test'})
 
-df_pred_SRNN = pd.concat([y_test_S, y_pred_sc], axis=1)
-
-df_pred_SRNN['diff'] = df_pred_SRNN['y_test'] - df_pred_SRNN['y_pred']
+# y_pred_sc = pd.DataFrame(y_pred_SRNN)
+# y_pred_sc.index = y_test_SRNN.index
+# y_pred_sc = y_pred_sc.rename(columns={0: "y_pred"})
+# y_pred_sc['y_pred'] = y_pred_sc['y_pred']*1.5
+# y_pred_sc['y_pred'] = y_pred_sc['y_pred']-100
 
 #plotting a chart
-fig1 = go.Figure()
-fig1.update_layout(autosize=False,width=width,height=height,)
-fig1.add_trace(go.Scatter(x=df_pred_SRNN.index, y=df_pred_SRNN['y_test'], name = 'Real SPY-ETF Price' ))
-fig1.add_trace(go.Scatter(x=df_pred_SRNN.index,y=df_pred_SRNN['y_pred'],name = 'Predicted SPY-ETF Price'))
-fig1.add_trace(go.Bar(x=df_pred_SRNN.index,y=df_pred_SRNN['diff'],name = 'prediction error',marker = {'color' : 'green'}))
-fig1.update_layout(title='Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
+# fig1 = go.Figure()
+# fig1.update_layout(autosize=False,width=width,height=height,)
+# fig1.add_trace(go.Scatter(x=df_pred_SRNN.index, y=df_pred_SRNN['y_test'], name = 'Real SPY-ETF Price' ))
+# fig1.add_trace(go.Scatter(x=df_pred_SRNN.index,y=df_pred_SRNN['y_pred'],name = 'Predicted SPY-ETF Price'))
+# fig1.add_trace(go.Bar(x=df_pred_SRNN.index,y=df_pred_SRNN['diff'],name = 'prediction error',marker = {'color' : 'green'}))
+# fig1.update_layout(title='Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
 
+# st.plotly_chart(fig1)
+
+#creating database
+
+y_pred_sc = pd.DataFrame(y_pred_SRNN)
+df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
+df_pred = df_pred.rename(columns={"price_close": "testing set"})
+df_pred = df_pred.rename(columns={ "pred": 'prediction'})
+df_pred = df_pred.reset_index()
+
+#plotting chart
+fig1 = plt.gcf(); fig1.set_size_inches(9, 5)
+plt.plot(y_pred_sc, c="blue", label="Prediction")
+plt.plot(y_test_SRNN, c="red", label="Test")
 st.plotly_chart(fig1)
 
 st.markdown('''

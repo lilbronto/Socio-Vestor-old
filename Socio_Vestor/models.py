@@ -200,7 +200,7 @@ class SimpleRNN_main():
         df_main = get_main_df()
         df_trend_df = df_trend(df_main)
 
-        df_main = pd.concat([df_main, df_trend_df])
+        df_main = pd.concat([df_main, df_trend_df], axis=1)
 
         X = df_main[['real_gdp', 'cpi', 'MACD_Signal', 'MACD', 'MACD_Hist', 'trend_int']]
         y = df_main['price_close']
