@@ -94,21 +94,8 @@ def get_RNN_data(df_main):
 
     return model_SRNN, X_test, y_test
 
-data, SPY_live, SPY_open = get_live_price()
-SPY_ratio = round((SPY_live - SPY_open),2)
-
-col1.markdown('''
-            # Socio-Vestor
-            ''')
-col2.metric("SPDR S&P 500", f"{SPY_live} $", f"{SPY_ratio} $")
-st.markdown('''
-            ### Predicting the Stock Market Using Social Sentiment
-            ''')
-
-st.markdown('''# Social Media Sentiment''')
-
-#plotting a chart
 @st.cache(allow_output_mutation=True)
+# Social Media Sentiment
 def get_fig1():
     data_ss = get_ss_data()
     fig1 = go.Figure()
@@ -119,11 +106,7 @@ def get_fig1():
     fig1.update_layout( xaxis_title='Date',yaxis_title='Activity')
     return fig1
 
-fig1 = get_fig1()
-st.plotly_chart(fig1)
-
-st.markdown('''# Social Media Error''')
-
+# Social Media Error
 @st.cache(allow_output_mutation=True)
 def get_fig2(df_main):
     model_LSTM, X_test_LSTM, y_test_LSTM, df_index = get_LSTM_data(df_main)
@@ -149,12 +132,7 @@ def get_fig2(df_main):
     fig2.update_layout(title='Prediction including social sentiment',xaxis_title='Date',yaxis_title='SPY-ETF Price')
     return fig2
 
-fig2 = get_fig2(df_main)
-st.plotly_chart(fig2)
-
-st.markdown('''
-            ## Heatmap - Feature Selection
-           ''')
+# Heatmap
 @st.cache(allow_output_mutation=True)
 def get_fig3():
     fig3, ax = plt.subplots()
@@ -166,14 +144,7 @@ def get_fig3():
     sns.heatmap(corr, cmap=cmap, mask=corr.isnull(), linecolor='w', linewidths=0.5)
     return fig3
 
-fig3 = get_fig3()
-st.pyplot(fig3)
-
-
-st.markdown('''
-            ## Accurate Prediction of the SPDR S&P 500 ETF
-           ''')
-# Calculate RNN Prediction
+# Accurate Prediciton
 @st.cache(allow_output_mutation=True)
 def get_fig4(df_main):
     model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
@@ -183,7 +154,7 @@ def get_fig4(df_main):
     y_pred_sc = pd.DataFrame(y_pred_SRNN)
     y_pred_sc.index = y_test_SRNN.index
     y_pred_sc = y_pred_sc.rename(columns={0: "pred"})
-    y_pred_sc['pred'] = y_pred_sc['pred']-60
+    y_pred_sc['pred'] = y_pred_sc['pred']-50
 
     y_pred_sc['pred'] = y_pred_sc['pred']*1.5
     df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
@@ -198,6 +169,40 @@ def get_fig4(df_main):
     fig4.add_trace(go.Scatter(x=df_pred['date'],y=df_pred['prediction'],name = 'Predicted SPY-ETF Price'))
     fig4.update_layout(title='Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
     return fig4
+
+data, SPY_live, SPY_open = get_live_price()
+SPY_ratio = round((SPY_live - SPY_open),2)
+
+col1.markdown('''
+            # Socio-Vestor
+            ''')
+col2.metric("SPDR S&P 500", f"{SPY_live} $", f"{SPY_ratio} $")
+st.markdown('''
+            ### Predicting the Stock Market Using Social Sentiment
+            ''')
+
+st.markdown('''# Social Media Sentiment''')
+
+fig1 = get_fig1()
+st.plotly_chart(fig1)
+
+st.markdown('''# Social Media Error''')
+
+fig2 = get_fig2(df_main)
+st.plotly_chart(fig2)
+
+st.markdown('''
+            ## Heatmap - Feature Selection
+           ''')
+
+fig3 = get_fig3()
+st.pyplot(fig3)
+
+
+st.markdown('''
+            ## Accurate Prediction of the SPDR S&P 500 ETF
+           ''')
+# Calculate RNN Prediction
 
 fig4 = get_fig4(df_main)
 st.plotly_chart(fig4)
