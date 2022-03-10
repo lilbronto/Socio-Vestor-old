@@ -165,7 +165,7 @@ def get_fig1():
 def get_fig6():
     data_ss = get_ss_data()
     fig6 = go.Figure()
-    fig6.update_layout(autosize=False,width=width-45,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+    fig6.update_layout(autosize=False,width=width-165,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
     fig6.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['weighted_ss'],name = 'Weighted Score'))
     fig6.update_layout( xaxis_title='Date',yaxis_title='Activity')
     return fig6
@@ -276,7 +276,7 @@ st.markdown('''
             # Live Prediction of the SPY Price
             ''')
 fig5 = go.Figure()
-fig5.update_layout(autosize=False,width=width-105,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+fig5.update_layout(autosize=False,width=width-165,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
 fig5.add_trace(go.Scatter(x=data.index,y=data['Open'],name = 'Real SPY-ETF Price'))
 fig5.add_hline(y=y_live, line_width=3, line_dash="dash", line_color="red")
 fig5.update_layout(title='Stock Price vs. Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
