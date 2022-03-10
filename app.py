@@ -71,6 +71,7 @@ def get_ss_data(from_date="2021-03-12",to_date = "2022-04-09"):
     response_ss = requests.get(url_ss, params=params_ss, headers=headers_dict).json()
 
     data_ss = pd.DataFrame.from_dict(response_ss)
+    data_ss['weighted_ss'] = data_ss['score']/data_ss['activity']
     return data_ss
 
 # Get the data and chache it in order to avoid constant reloading
@@ -136,7 +137,7 @@ def get_df_pred():
     y_pred_sc = pd.DataFrame(y_pred_SRNN)
     y_pred_sc.index = y_test_SRNN.index
     y_pred_sc = y_pred_sc.rename(columns={0: "pred"})
-    y_pred_sc['pred'] = y_pred_sc['pred']-40
+    y_pred_sc['pred'] = y_pred_sc['pred']-45
 
     y_pred_sc['pred'] = y_pred_sc['pred']*1.5
     df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
@@ -147,8 +148,8 @@ def get_df_pred():
 
 df_pred, y_live = get_df_pred()
 
-@st.cache(allow_output_mutation=True)
 # Social Media Sentiment
+@st.cache(allow_output_mutation=True)
 def get_fig1():
     data_ss = get_ss_data()
     fig1 = go.Figure()
@@ -158,6 +159,16 @@ def get_fig1():
     fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['score'],name = 'Total Score'))
     fig1.update_layout( xaxis_title='Date',yaxis_title='Activity')
     return fig1
+
+# Weighted Social Sentiment
+@st.cache(allow_output_mutation=True)
+def get_fig6():
+    data_ss = get_ss_data()
+    fig6 = go.Figure()
+    fig6.update_layout(autosize=False,width=width-45,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+    fig6.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['weighted_ss'],name = 'Weighted Score'))
+    fig6.update_layout( xaxis_title='Date',yaxis_title='Activity')
+    return fig6
 
 # Social Media Error
 @st.cache(allow_output_mutation=True)
@@ -230,6 +241,10 @@ st.markdown('''
 st.markdown('''## Social Media Sentiment''')
 fig1 = get_fig1()
 st.plotly_chart(fig1)
+
+st.markdown('''## Weighted Score''')
+fig6 = get_fig6()
+st.plotly_chart(fig6)
 
 #if genre == 'Social Media Error':
 
