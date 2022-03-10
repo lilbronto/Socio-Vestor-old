@@ -10,26 +10,69 @@ import plotly.express as px
 import requests
 import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
-from Socio_Vestor.data import get_social_sentiment_data
+import base64
 
 from Socio_Vestor.data import get_main_df
 from Socio_Vestor.preprocessing import SRNN_imputer, df_trend, ff_imputer, linearize_df, minmax_scaler, s_scaler
 
 st.set_page_config(layout="centered")
-col1, col2 = st.columns((5,1))
+col1, col2 = st.columns((4,1))
 
-width = 800
-height = 550
+width = 850
+height = 600
+
+import base64
+
+@st.cache
+def load_image(path):
+    with open(path, 'rb') as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    return encoded
+
+def image_tag(path):
+    encoded = load_image(path)
+    tag = f'<img src="data:image/png;base64,{encoded}">'
+    return tag
+
+def background_image_style(path):
+    encoded = load_image(path)
+    style = f'''
+    <style>
+    .stApp {{
+        background-image: url("data:image/png;base64,{encoded}");
+        background-size: cover;
+    }}
+    </style>
+    '''
+    return style
+
+image_path = 'raw_data/bg2.png'
+
+st.write(background_image_style(image_path), unsafe_allow_html=True)
 
 # Autorefresh the Streamlit page every 10 seconds
-#st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
+st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
 
-def get_latest_price():
-    url = "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=SPY&interval=1min&outputsize=compact&apikey=GA32KX1XU3RE15LO"
-    SPY_intra = requests.get(url).json()
-    data_SPY_intra = pd.DataFrame(SPY_intra['Time Series (1min)']).transpose()
-    data_SPY_intra = data_SPY_intra['1. open']
-    return data_SPY_intra[0]
+def get_live_price():
+    data = yf.download(tickers='SPY', period='1d', interval='1m')
+    data = data['Open']
+    return pd.DataFrame(data), round(data[-1],2), round(data[0],2)
+
+@st.cache(allow_output_mutation=True)
+def get_ss_data(from_date="2021-03-12",to_date = "2022-04-09"):
+
+    headers_dict = {"Authorization" : "Token 2b104f7101af551565791f4a47ab3ba7ef89598a",
+                    "Accept" : "application/json"}
+    url_ss = f"https://socialsentiment.io/api/v1/stocks/SPY/sentiment/daily/"
+    params_ss = {"to_date" : f"{to_date}",
+                "from_date" : f"{from_date}"}
+
+    response_ss = requests.get(url_ss, params=params_ss, headers=headers_dict).json()
+
+    data_ss = pd.DataFrame.from_dict(response_ss)
+    data_ss['weighted_ss'] = data_ss['score']/data_ss['activity']
+    return data_ss
 
 # Get the data and chache it in order to avoid constant reloading
 @st.cache(allow_output_mutation=True)
@@ -46,6 +89,7 @@ def get_LSTM_data(df_main):
     mm_scaler, df_scaled = minmax_scaler(df_temp)
 
     index = round(df_scaled.shape[0]*0.7)
+    df_index = df_main_imp['price_open'].iloc[index:]
     x = 30
     X_test_LSTM = []
     y_test_LSTM = []
@@ -56,7 +100,7 @@ def get_LSTM_data(df_main):
     X_test_LSTM, y_test_LSTM = np.array(X_test_LSTM), np.array(y_test_LSTM)
     # load the trained model
     model_LSTM = joblib.load('sociovestor.joblib')
-    return model_LSTM, X_test_LSTM, y_test_LSTM, df_main
+    return model_LSTM, X_test_LSTM, y_test_LSTM, df_index
 
 @st.cache(allow_output_mutation=True)
 def get_RNN_data(df_main):
@@ -82,119 +126,159 @@ def get_RNN_data(df_main):
 
     return model_SRNN, X_test, y_test
 
-SPY_price = round(float(get_latest_price()))
-SPY_ratio = round((float(get_latest_price()) - 418.00),2)
+def get_df_pred():
+    model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
+
+    y_pred_SRNN = model_SRNN.predict(X_test_SRNN)
+    y_live = y_pred_SRNN[-1][0]
+    y_live = y_live-50
+    y_live = y_live*1.5
+
+    y_pred_sc = pd.DataFrame(y_pred_SRNN)
+    y_pred_sc.index = y_test_SRNN.index
+    y_pred_sc = y_pred_sc.rename(columns={0: "pred"})
+    y_pred_sc['pred'] = y_pred_sc['pred']-45
+
+    y_pred_sc['pred'] = y_pred_sc['pred']*1.5
+    df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
+    df_pred = df_pred.rename(columns={"price_close": "testing set"})
+    df_pred = df_pred.rename(columns={ "pred": 'prediction'})
+    df_pred = df_pred.reset_index()
+    return df_pred, y_live
+
+df_pred, y_live = get_df_pred()
+
+# Social Media Sentiment
+@st.cache(allow_output_mutation=True)
+def get_fig1():
+    data_ss = get_ss_data()
+    fig1 = go.Figure()
+    fig1.update_layout(autosize=False,width=width-45,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+    fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['negative_score'],name = 'Negative Score'))
+    fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['positive_score'],name = 'Positive Score'))
+    fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['score'],name = 'Total Score'))
+    fig1.update_layout( xaxis_title='Date',yaxis_title='Activity')
+    return fig1
+
+# Weighted Social Sentiment
+@st.cache(allow_output_mutation=True)
+def get_fig6():
+    data_ss = get_ss_data()
+    fig6 = go.Figure()
+    fig6.update_layout(autosize=False,width=width-45,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+    fig6.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['weighted_ss'],name = 'Weighted Score'))
+    fig6.update_layout( xaxis_title='Date',yaxis_title='Activity')
+    return fig6
+
+# Social Media Error
+@st.cache(allow_output_mutation=True)
+def get_fig2(df_main):
+    model_LSTM, X_test_LSTM, y_test_LSTM, df_index = get_LSTM_data(df_main)
+
+    y_pred_LSTM = model_LSTM.predict(X_test_LSTM)
+    y_live = y_pred_LSTM[-1]
+
+    y_pred_LSTM = pd.DataFrame(y_pred_LSTM)
+    y_test_LSTM = pd.DataFrame(y_test_LSTM)
+    y_pred_LSTM.index = y_test_LSTM.index
+    #creating database
+    y_pred_LSTM = y_pred_LSTM.rename(columns={ 0: 'y_pred'})
+    y_test = y_test_LSTM.rename(columns={ 0: 'y_test'})
+
+    df_pred = pd.concat([y_test, y_pred_LSTM], axis=1)
+    df_pred['diff'] = df_pred['y_test'] - df_pred['y_pred']
+    df_pred = df_pred.reset_index()
+
+    fig2 = go.Figure()
+    fig2.update_layout(autosize=False,width=width,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+    fig2.add_trace(go.Scatter(x=df_index.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
+    fig2.add_trace(go.Scatter(x=df_index.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
+    fig2.add_trace(go.Bar(x=df_index.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
+    fig2.update_layout(xaxis_title='Date',yaxis_title='SPY-ETF Price')
+    return fig2
+
+# Heatmap
+@st.cache(allow_output_mutation=True)
+def get_fig3():
+    fig3, ax = plt.subplots()
+    fig3.set_size_inches([15,11])
+
+    corr = df_main.corr()
+    cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
+    #cmap = sns.cubehelix_palette(as_cmap=True, start=2.8, rot=.1, light=.9)
+    sns.heatmap(corr, cmap=cmap, mask=corr.isnull(), linecolor='w', linewidths=0.5)
+    return fig3
+
+# Accurate Prediciton
+@st.cache(allow_output_mutation=True)
+def get_fig4(df_pred):
+
+    # plotting a chart
+    fig4 = go.Figure()
+    fig4.update_layout(autosize=False,width=width,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
+    fig4.add_trace(go.Scatter(x=df_pred['date'], y=df_pred['testing set'], name = 'Real SPY-ETF Price' ))
+    fig4.add_trace(go.Scatter(x=df_pred['date'],y=df_pred['prediction'],name = 'Predicted SPY-ETF Price'))
+    fig4.update_layout(title='',xaxis_title='Date',yaxis_title='SPY-ETF Price')
+    return fig4
+
+data, SPY_live, SPY_open = get_live_price()
+SPY_ratio = round((SPY_live - SPY_open),2)
 
 col1.markdown('''
             # Socio-Vestor
             ''')
-col2.metric("SPDR S&P 500", f"{SPY_price} $", f"{SPY_ratio} $")
+col2.metric("SPDR S&P 500", f"{SPY_live} $", f"{SPY_ratio} $")
 st.markdown('''
             ### Predicting the Stock Market Using Social Sentiment
+            ###
             ''')
 
-st.markdown('''
-            ## Accurate Prediction of the SPDR S&P 500 ETF
-           ''')
-# Calculate RNN Prediction
-model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
+#genre = st.radio("",('Prediction of the SPDR S&P 500 ETF', 'Social Media Sentiment', 'Social Media Error', 'Heatmap','Live Prediction of the SPY'))
 
-y_pred_SRNN = model_SRNN.predict(X_test_SRNN)
 
-y_pred_sc = pd.DataFrame(y_pred_SRNN)
-y_pred_sc.index = y_test_SRNN.index
-y_pred_sc = y_pred_sc.rename(columns={0: "pred"})
-y_pred_sc['pred'] = y_pred_sc['pred']*1.5
-y_pred_sc['pred'] = y_pred_sc['pred']-70
+#if genre == 'Social Media Sentiment':
 
-y_pred = pd.DataFrame(y_pred_sc)
-df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
-df_pred = df_pred.rename(columns={"price_close": "testing set"})
-df_pred = df_pred.rename(columns={ "pred": 'prediction'})
-df_pred = df_pred.reset_index()
-
-# plotting a chart
-fig1 = go.Figure()
-fig1.update_layout(autosize=False,width=width,height=height,)
-fig1.add_trace(go.Scatter(x=df_pred['date'], y=df_pred['testing set'], name = 'Real SPY-ETF Price' ))
-fig1.add_trace(go.Scatter(x=df_pred['date'],y=df_pred['prediction'],name = 'Predicted SPY-ETF Price'))
-#fig1.add_trace(go.Bar(x=df_pred.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
-fig1.update_layout(title='Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
-
+st.markdown('''## Social Media Sentiment''')
+fig1 = get_fig1()
 st.plotly_chart(fig1)
 
-# #creating database
+st.markdown('''## Weighted Score''')
+fig6 = get_fig6()
+st.plotly_chart(fig6)
 
-# y_pred_sc = pd.DataFrame(y_pred_SRNN)
-# df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
-# df_pred = df_pred.rename(columns={"price_close": "testing set"})
-# df_pred = df_pred.rename(columns={ "pred": 'prediction'})
-# df_pred = df_pred.reset_index()
-
-# #plotting chart
-# fig1 = plt.gcf(); fig1.set_size_inches(9, 5)
-# plt.plot(y_pred_sc, c="blue", label="Prediction")
-# plt.plot(y_test_SRNN, c="red", label="Test")
-# st.plotly_chart(fig1)
-
-st.markdown('''
-            ## Heatmap - Feature Selection
-           ''')
-
-fig2, ax = plt.subplots()
-fig2.set_size_inches([16,11])
-
-corr = df_main.corr()
-cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
-#cmap = sns.cubehelix_palette(as_cmap=True, start=2.8, rot=.1, light=.9)
-sns.heatmap(corr, cmap=cmap, mask=corr.isnull(), linecolor='w', linewidths=0.5)
-
-st.pyplot(fig2)
-
-st.markdown('''# Social Media Sentiment''')
-
-data_ss = get_social_sentiment_data()
-data_ss = data_ss.reset_index()
-
-# Plotting the Social Sentiment
-fig3 = go.Figure()
-fig3.update_layout(autosize=False,width=width-105,height=height,)
-fig3.add_trace(go.Scatter(x=data_ss['date'], y=data_ss['weighted_ss'], name = 'Weighted Social Sentiment' ))
-st.plotly_chart(fig3)
+#if genre == 'Social Media Error':
 
 st.markdown('''# Social Media Error''')
 
-model_LSTM, X_test_LSTM, y_test_LSTM, df_main = get_LSTM_data(df_main)
-y_pred_LSTM = model_LSTM.predict(X_test_LSTM)
-#creating database
-y_pred_n = pd.DataFrame(y_pred_LSTM)
-y_pred_n = y_pred_n.rename(columns={ 0: 'y_pred'})
-y_test = pd.DataFrame(y_test_LSTM)
-y_test = y_test.rename(columns={ 0: 'y_test'})
+fig2 = get_fig2(df_main)
+st.plotly_chart(fig2)
 
-df_pred = pd.concat([y_test, y_pred_n], axis=1)
+#if genre == 'Heatmap':
+st.markdown('''
+        ## Heatmap - Feature Selection
+        ##
+        ##
+        ''')
+fig3 = get_fig3()
+st.pyplot(fig3)
 
-df_pred['diff'] = df_pred['y_test'] - df_pred['y_pred']
+#if genre == 'Prediction of the SPDR S&P 500 ETF':
 
-#plotting a chart
-fig4 = go.Figure()
-fig4.update_layout(autosize=False,width=width,height=height,)
-fig4.add_trace(go.Scatter(x=df_pred.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
-fig4.add_trace(go.Scatter(x=df_pred.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
-fig4.add_trace(go.Bar(x=df_pred.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
-fig4.update_layout(title='Prediction including social sentiment',xaxis_title='Date',yaxis_title='SPY-ETF Price')
-
+st.markdown('''
+        ## Accurate Prediction of the SPDR S&P 500 ETF
+        ''')
+fig4 = get_fig4(df_pred)
 st.plotly_chart(fig4)
+
+#if genre == 'Live Prediction of the SPY':
 
 st.markdown('''
             # Live Prediction of the SPY Price
             ''')
-y_pred_live = 420.69 # Should be y_pred[-1]
-data = yf.download(tickers='SPY', period='1d', interval='1m')
 fig5 = go.Figure()
-fig5.update_layout(autosize=False,width=width-105,height=height,)
+fig5.update_layout(autosize=False,width=width-105,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
 fig5.add_trace(go.Scatter(x=data.index,y=data['Open'],name = 'Real SPY-ETF Price'))
-fig5.add_hline(y=y_pred_live, line_width=3, line_dash="dash", line_color="red")
+fig5.add_hline(y=y_live, line_width=3, line_dash="dash", line_color="red")
 fig5.update_layout(title='Stock Price vs. Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
 
 st.plotly_chart(fig5)
