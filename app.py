@@ -16,18 +16,48 @@ from Socio_Vestor.data import get_main_df
 from Socio_Vestor.preprocessing import SRNN_imputer, df_trend, ff_imputer, linearize_df, minmax_scaler, s_scaler
 
 st.set_page_config(layout="centered")
-col1, col2 = st.columns((5,1))
+col1, col2 = st.columns((4,1))
 
 width = 850
 height = 600
 
+import base64
+
+@st.cache
+def load_image(path):
+    with open(path, 'rb') as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    return encoded
+
+def image_tag(path):
+    encoded = load_image(path)
+    tag = f'<img src="data:image/png;base64,{encoded}">'
+    return tag
+
+def background_image_style(path):
+    encoded = load_image(path)
+    style = f'''
+    <style>
+    .stApp {{
+        background-image: url("data:image/png;base64,{encoded}");
+        background-size: cover;
+    }}
+    </style>
+    '''
+    return style
+
+image_path = 'raw_data/bg2.png'
+
+st.write(background_image_style(image_path), unsafe_allow_html=True)
+
 # Autorefresh the Streamlit page every 10 seconds
-#st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
+st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
 
 def get_live_price():
     data = yf.download(tickers='SPY', period='1d', interval='1m')
     data = data['Open']
-    return pd.DataFrame(data), round(data[-1]), round(data[0])
+    return pd.DataFrame(data), round(data[-1],2), round(data[0],2)
 
 @st.cache(allow_output_mutation=True)
 def get_ss_data(from_date="2021-03-12",to_date = "2022-04-09"):
@@ -122,7 +152,7 @@ df_pred, y_live = get_df_pred()
 def get_fig1():
     data_ss = get_ss_data()
     fig1 = go.Figure()
-    fig1.update_layout(autosize=False,width=width-45,height=height,)
+    fig1.update_layout(autosize=False,width=width-45,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
     fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['negative_score'],name = 'Negative Score'))
     fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['positive_score'],name = 'Positive Score'))
     fig1.add_trace(go.Scatter(x=data_ss['date'],y=data_ss['score'],name = 'Total Score'))
@@ -149,7 +179,7 @@ def get_fig2(df_main):
     df_pred = df_pred.reset_index()
 
     fig2 = go.Figure()
-    fig2.update_layout(autosize=False,width=width,height=height,)
+    fig2.update_layout(autosize=False,width=width,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
     fig2.add_trace(go.Scatter(x=df_index.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
     fig2.add_trace(go.Scatter(x=df_index.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
     fig2.add_trace(go.Bar(x=df_index.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
@@ -174,7 +204,7 @@ def get_fig4(df_pred):
 
     # plotting a chart
     fig4 = go.Figure()
-    fig4.update_layout(autosize=False,width=width,height=height,)
+    fig4.update_layout(autosize=False,width=width,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
     fig4.add_trace(go.Scatter(x=df_pred['date'], y=df_pred['testing set'], name = 'Real SPY-ETF Price' ))
     fig4.add_trace(go.Scatter(x=df_pred['date'],y=df_pred['prediction'],name = 'Predicted SPY-ETF Price'))
     fig4.update_layout(title='',xaxis_title='Date',yaxis_title='SPY-ETF Price')
@@ -189,6 +219,7 @@ col1.markdown('''
 col2.metric("SPDR S&P 500", f"{SPY_live} $", f"{SPY_ratio} $")
 st.markdown('''
             ### Predicting the Stock Market Using Social Sentiment
+            ###
             ''')
 
 #genre = st.radio("",('Prediction of the SPDR S&P 500 ETF', 'Social Media Sentiment', 'Social Media Error', 'Heatmap','Live Prediction of the SPY'))
@@ -196,13 +227,14 @@ st.markdown('''
 
 #if genre == 'Social Media Sentiment':
 
-st.markdown('''# Social Media Sentiment''')
+st.markdown('''## Social Media Sentiment''')
 fig1 = get_fig1()
 st.plotly_chart(fig1)
 
 #if genre == 'Social Media Error':
 
 st.markdown('''# Social Media Error''')
+
 fig2 = get_fig2(df_main)
 st.plotly_chart(fig2)
 
@@ -229,7 +261,7 @@ st.markdown('''
             # Live Prediction of the SPY Price
             ''')
 fig5 = go.Figure()
-fig5.update_layout(autosize=False,width=width-105,height=height,)
+fig5.update_layout(autosize=False,width=width-105,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
 fig5.add_trace(go.Scatter(x=data.index,y=data['Open'],name = 'Real SPY-ETF Price'))
 fig5.add_hline(y=y_live, line_width=3, line_dash="dash", line_color="red")
 fig5.update_layout(title='Stock Price vs. Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
