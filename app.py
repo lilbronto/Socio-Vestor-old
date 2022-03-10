@@ -10,6 +10,7 @@ import plotly.express as px
 import requests
 import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
+import base64
 
 from Socio_Vestor.data import get_main_df
 from Socio_Vestor.preprocessing import SRNN_imputer, df_trend, ff_imputer, linearize_df, minmax_scaler, s_scaler
@@ -17,8 +18,8 @@ from Socio_Vestor.preprocessing import SRNN_imputer, df_trend, ff_imputer, linea
 st.set_page_config(layout="centered")
 col1, col2 = st.columns((5,1))
 
-width = 800
-height = 550
+width = 850
+height = 600
 
 # Autorefresh the Streamlit page every 10 seconds
 #st_autorefresh(interval= 60 * 1000, key="dataframerefresh")
@@ -94,6 +95,28 @@ def get_RNN_data(df_main):
 
     return model_SRNN, X_test, y_test
 
+def get_df_pred():
+    model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
+
+    y_pred_SRNN = model_SRNN.predict(X_test_SRNN)
+    y_live = y_pred_SRNN[-1][0]
+    y_live = y_live-50
+    y_live = y_live*1.5
+
+    y_pred_sc = pd.DataFrame(y_pred_SRNN)
+    y_pred_sc.index = y_test_SRNN.index
+    y_pred_sc = y_pred_sc.rename(columns={0: "pred"})
+    y_pred_sc['pred'] = y_pred_sc['pred']-40
+
+    y_pred_sc['pred'] = y_pred_sc['pred']*1.5
+    df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
+    df_pred = df_pred.rename(columns={"price_close": "testing set"})
+    df_pred = df_pred.rename(columns={ "pred": 'prediction'})
+    df_pred = df_pred.reset_index()
+    return df_pred, y_live
+
+df_pred, y_live = get_df_pred()
+
 @st.cache(allow_output_mutation=True)
 # Social Media Sentiment
 def get_fig1():
@@ -112,6 +135,7 @@ def get_fig2(df_main):
     model_LSTM, X_test_LSTM, y_test_LSTM, df_index = get_LSTM_data(df_main)
 
     y_pred_LSTM = model_LSTM.predict(X_test_LSTM)
+    y_live = y_pred_LSTM[-1]
 
     y_pred_LSTM = pd.DataFrame(y_pred_LSTM)
     y_test_LSTM = pd.DataFrame(y_test_LSTM)
@@ -129,14 +153,14 @@ def get_fig2(df_main):
     fig2.add_trace(go.Scatter(x=df_index.index, y=df_pred['y_test'], name = 'Real SPY-ETF Price' ))
     fig2.add_trace(go.Scatter(x=df_index.index,y=df_pred['y_pred'],name = 'Predicted SPY-ETF Price'))
     fig2.add_trace(go.Bar(x=df_index.index,y=df_pred['diff'],name = 'prediction error',marker = {'color' : 'green'}))
-    fig2.update_layout(title='Prediction including social sentiment',xaxis_title='Date',yaxis_title='SPY-ETF Price')
+    fig2.update_layout(xaxis_title='Date',yaxis_title='SPY-ETF Price')
     return fig2
 
 # Heatmap
 @st.cache(allow_output_mutation=True)
 def get_fig3():
     fig3, ax = plt.subplots()
-    fig3.set_size_inches([16,11])
+    fig3.set_size_inches([15,11])
 
     corr = df_main.corr()
     cmap = sns.cubehelix_palette(as_cmap=True, rot=-.4, light=.9)
@@ -146,28 +170,14 @@ def get_fig3():
 
 # Accurate Prediciton
 @st.cache(allow_output_mutation=True)
-def get_fig4(df_main):
-    model_SRNN, X_test_SRNN, y_test_SRNN,= get_RNN_data(df_main)
-
-    y_pred_SRNN = model_SRNN.predict(X_test_SRNN)
-
-    y_pred_sc = pd.DataFrame(y_pred_SRNN)
-    y_pred_sc.index = y_test_SRNN.index
-    y_pred_sc = y_pred_sc.rename(columns={0: "pred"})
-    y_pred_sc['pred'] = y_pred_sc['pred']-50
-
-    y_pred_sc['pred'] = y_pred_sc['pred']*1.5
-    df_pred = pd.concat([y_test_SRNN, y_pred_sc], axis=1)
-    df_pred = df_pred.rename(columns={"price_close": "testing set"})
-    df_pred = df_pred.rename(columns={ "pred": 'prediction'})
-    df_pred = df_pred.reset_index()
+def get_fig4(df_pred):
 
     # plotting a chart
     fig4 = go.Figure()
     fig4.update_layout(autosize=False,width=width,height=height,)
     fig4.add_trace(go.Scatter(x=df_pred['date'], y=df_pred['testing set'], name = 'Real SPY-ETF Price' ))
     fig4.add_trace(go.Scatter(x=df_pred['date'],y=df_pred['prediction'],name = 'Predicted SPY-ETF Price'))
-    fig4.update_layout(title='Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
+    fig4.update_layout(title='',xaxis_title='Date',yaxis_title='SPY-ETF Price')
     return fig4
 
 data, SPY_live, SPY_open = get_live_price()
@@ -181,40 +191,47 @@ st.markdown('''
             ### Predicting the Stock Market Using Social Sentiment
             ''')
 
-st.markdown('''# Social Media Sentiment''')
+#genre = st.radio("",('Prediction of the SPDR S&P 500 ETF', 'Social Media Sentiment', 'Social Media Error', 'Heatmap','Live Prediction of the SPY'))
 
+
+#if genre == 'Social Media Sentiment':
+
+st.markdown('''# Social Media Sentiment''')
 fig1 = get_fig1()
 st.plotly_chart(fig1)
 
-st.markdown('''# Social Media Error''')
+#if genre == 'Social Media Error':
 
+st.markdown('''# Social Media Error''')
 fig2 = get_fig2(df_main)
 st.plotly_chart(fig2)
 
+#if genre == 'Heatmap':
 st.markdown('''
-            ## Heatmap - Feature Selection
-           ''')
-
+        ## Heatmap - Feature Selection
+        ##
+        ##
+        ''')
 fig3 = get_fig3()
 st.pyplot(fig3)
 
+#if genre == 'Prediction of the SPDR S&P 500 ETF':
 
 st.markdown('''
-            ## Accurate Prediction of the SPDR S&P 500 ETF
-           ''')
-# Calculate RNN Prediction
-
-fig4 = get_fig4(df_main)
+        ## Accurate Prediction of the SPDR S&P 500 ETF
+        ''')
+fig4 = get_fig4(df_pred)
 st.plotly_chart(fig4)
+
+#if genre == 'Live Prediction of the SPY':
 
 st.markdown('''
             # Live Prediction of the SPY Price
             ''')
-y_pred_live = 420.69 # Should be y_pred[-1]
 fig5 = go.Figure()
 fig5.update_layout(autosize=False,width=width-105,height=height,)
 fig5.add_trace(go.Scatter(x=data.index,y=data['Open'],name = 'Real SPY-ETF Price'))
-fig5.add_hline(y=y_pred_live, line_width=3, line_dash="dash", line_color="red")
+fig5.add_hline(y=y_live, line_width=3, line_dash="dash", line_color="red")
 fig5.update_layout(title='Stock Price vs. Prediction',xaxis_title='Date',yaxis_title='SPY-ETF Price')
 
 st.plotly_chart(fig5)
