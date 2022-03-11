@@ -21,9 +21,9 @@ def df_trend(df):
     df_trend.index = pd.to_datetime(df_trend.index)
 
     df_trend['trend'].iloc[[-2]] = np.nan
-    if math.isnan(df['price_close'].iloc[[-1]]):
+    if math.isnan(df['price_close'].iloc[[-2]]):
         ### CHANGE -3 ACCORDING TO BANK HOLIDAYS AND WEEKENDS ###
-        df_trend['trend'].iloc[[-1]] = df['price_close'].iloc[[-2]]
+        df_trend['trend'].iloc[[-1]] = df['price_close'].iloc[[-4]]
     else:
         df_trend['trend'].iloc[[-1]] = df['price_close'].iloc[[-1]]
 

@@ -39,3 +39,4 @@ memoized-property
 termcolor
 notebook
 plotly
+seaborn
