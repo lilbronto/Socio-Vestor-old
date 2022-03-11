@@ -47,7 +47,7 @@ def background_image_style(path):
     '''
     return style
 
-image_path = 'raw_data/bg2.png'
+image_path = 'assets/bg2.png'
 
 st.write(background_image_style(image_path), unsafe_allow_html=True)
 
