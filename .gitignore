@@ -8,3 +8,4 @@ raw_data/
 .env
 notebooks/
 ignore_*
+ignored_models/
