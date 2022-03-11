@@ -131,7 +131,7 @@ def get_df_pred():
 
     y_pred_SRNN = model_SRNN.predict(X_test_SRNN)
     y_live = y_pred_SRNN[-1][0]
-    y_live = y_live-50
+    y_live = y_live-45
     y_live = y_live*1.5
 
     y_pred_sc = pd.DataFrame(y_pred_SRNN)
@@ -231,6 +231,7 @@ col2.metric("SPDR S&P 500", f"{SPY_live} $", f"{SPY_ratio} $")
 st.markdown('''
             ### Predicting the Stock Market Using Social Sentiment
             ###
+            ###
             ''')
 
 #genre = st.radio("",('Prediction of the SPDR S&P 500 ETF', 'Social Media Sentiment', 'Social Media Error', 'Heatmap','Live Prediction of the SPY'))
@@ -248,7 +249,10 @@ st.plotly_chart(fig6)
 
 #if genre == 'Social Media Error':
 
-st.markdown('''# Social Media Error''')
+st.markdown('''
+            ## Social Media Error
+            ### Features: Price and Weighted Social Sentiment
+            ''')
 
 fig2 = get_fig2(df_main)
 st.plotly_chart(fig2)
@@ -266,6 +270,8 @@ st.pyplot(fig3)
 
 st.markdown('''
         ## Accurate Prediction of the SPDR S&P 500 ETF
+        ### Features: GDP, CPI, MAC_D, Trendline
+
         ''')
 fig4 = get_fig4(df_pred)
 st.plotly_chart(fig4)
@@ -273,7 +279,7 @@ st.plotly_chart(fig4)
 #if genre == 'Live Prediction of the SPY':
 
 st.markdown('''
-            # Live Prediction of the SPY Price
+            ## Live Prediction of the SPY Price
             ''')
 fig5 = go.Figure()
 fig5.update_layout(autosize=False,width=width-165,height=height, margin=dict(l=20, r=20, t=20, b=20), paper_bgcolor = 'rgba(0, 0, 0, 0)', plot_bgcolor = 'rgba(0, 0, 0, 0.03)')
